@@ -20,6 +20,7 @@
 #include <QLineEdit>
 #include <QTabWidget>
 #include <QFile>
+#include <msxml.h>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -68,46 +69,76 @@ void MainWindow::createUI()
     // ======================
     m_menuTab = new QWidget(this);
     auto menuLayout = new QVBoxLayout(m_menuTab);
+    menuLayout->setSpacing(10);
 
-    // Create room button
+    // Get Films button
     m_getFilmsBtn = new QPushButton("Get Films", m_menuTab);
-    menuLayout->addWidget(m_getFilmsBtn);
+    menuLayout->addWidget(m_getFilmsBtn, 0, Qt::AlignLeft);
+
+    // Создаем горизонтальный лейаут для поиска
+    auto searchLayout = new QHBoxLayout();
+
+    m_searchEdit = new QLineEdit(m_menuTab);
+    m_searchEdit->setPlaceholderText("Search...");
+    m_searchEdit->setClearButtonEnabled(true);
+    m_searchEdit->setMaximumWidth(1000);
+    searchLayout->addWidget(m_searchEdit, 1000, Qt::AlignLeft);
+
+    menuLayout->addLayout(searchLayout);
 
     // Movie list
-    menuLayout->addWidget(new QLabel("Available Movies:", m_menuTab));
     m_movieList = new QListWidget(m_menuTab);
-    menuLayout->addWidget(m_movieList);
+    m_movieList->setMinimumHeight(300);
+    m_movieList->setMaximumWidth(1500);
+    menuLayout->addWidget(m_movieList, 1);
 
-    // Film number input
-    auto filmNumberContainer = new QWidget(m_menuTab);
-    auto filmNumberLayout = new QHBoxLayout(filmNumberContainer);
-    filmNumberLayout->setContentsMargins(0, 0, 0, 0);
+    // Film selection - компактная группа
+    auto filmSelectionGroup = new QWidget(m_menuTab);
+    auto filmLayout = new QHBoxLayout(filmSelectionGroup);
+    filmLayout->setContentsMargins(0, 0, 0, 0);
+    filmLayout->setSpacing(5);
 
-    filmNumberLayout->addWidget(new QLabel("Film number:", filmNumberContainer));
-    m_filmNumberEdit = new QLineEdit(filmNumberContainer);
-    filmNumberLayout->addWidget(m_filmNumberEdit);
+    // Метка и поле для номера фильма
+    auto filmLabel = new QLabel("Film number:", filmSelectionGroup);
+    filmLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    filmLayout->addWidget(filmLabel);
 
-    m_createRoomBtn = new QPushButton("Create", filmNumberContainer);
-    filmNumberLayout->addWidget(m_createRoomBtn);
+    m_filmNumberEdit = new QLineEdit(filmSelectionGroup);
+    m_filmNumberEdit->setAlignment(Qt::AlignCenter);
+    m_filmNumberEdit->setFixedWidth(40); // Фиксированная ширина
+    m_filmNumberEdit->setValidator(new QIntValidator(1, 999, this));
+    filmLayout->addWidget(m_filmNumberEdit);
 
-    menuLayout->addWidget(filmNumberContainer);
+    // Кнопка создания
+    m_createRoomBtn = new QPushButton("Create", filmSelectionGroup);
+    m_createRoomBtn->setFixedWidth(80); // Фиксированная ширина
+    filmLayout->addWidget(m_createRoomBtn);
 
-    // Join room section
-    auto joinContainer = new QWidget(m_menuTab);
-    auto joinLayout = new QHBoxLayout(joinContainer);
+    menuLayout->addWidget(filmSelectionGroup, 0, Qt::AlignLeft);
+
+    // Join room section - компактная группа
+    auto joinGroup = new QWidget(m_menuTab);
+    auto joinLayout = new QHBoxLayout(joinGroup);
     joinLayout->setContentsMargins(0, 0, 0, 0);
+    joinLayout->setSpacing(5);
 
-    joinLayout->addWidget(new QLabel("Room ID:", joinContainer));
+    // Метка и поле для ID комнаты
+    auto roomLabel = new QLabel("Room ID:", joinGroup);
+    roomLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Preferred);
+    joinLayout->addWidget(roomLabel);
 
-    m_roomIdEdit = new QLineEdit(joinContainer);
+    m_roomIdEdit = new QLineEdit(joinGroup);
+    m_roomIdEdit->setAlignment(Qt::AlignCenter);
+    m_roomIdEdit->setFixedWidth(80); // Фиксированная ширина
+    m_roomIdEdit->setPlaceholderText("ID");
     joinLayout->addWidget(m_roomIdEdit);
 
-    m_joinRoomBtn = new QPushButton("Join Room", joinContainer);
+    // Кнопка входа
+    m_joinRoomBtn = new QPushButton("Join", joinGroup);
+    m_joinRoomBtn->setFixedWidth(80); // Фиксированная ширина
     joinLayout->addWidget(m_joinRoomBtn);
 
-    menuLayout->addWidget(joinContainer);
-    menuLayout->addStretch();
-
+    menuLayout->addWidget(joinGroup, 0, Qt::AlignLeft);
     m_tabWidget->addTab(m_menuTab, "Menu");
 
     // ======================
@@ -115,18 +146,20 @@ void MainWindow::createUI()
     // ======================
     m_roomTab = new QWidget(this);
     auto roomLayout = new QVBoxLayout(m_roomTab);
+    roomLayout->setSpacing(10);
 
-    // Добавляем панель с идентификатором комнаты [ВЫСШИЙ ПРИОРИТЕТ]
+    // Room ID panel
     auto roomIdPanel = new QWidget(m_roomTab);
     auto roomIdLayout = new QHBoxLayout(roomIdPanel);
     roomIdLayout->setContentsMargins(0, 0, 0, 0);
+    roomIdLayout->setSpacing(5);
 
     roomIdLayout->addWidget(new QLabel("Room ID:", roomIdPanel));
-    m_roomIdLabel = new QLabel("None", roomIdPanel); // Создаем QLabel для ID
+    m_roomIdLabel = new QLabel("None", roomIdPanel);
     roomIdLayout->addWidget(m_roomIdLabel);
     roomIdLayout->addStretch();
 
-    roomLayout->addWidget(roomIdPanel); // Добавляем в начало layout
+    roomLayout->addWidget(roomIdPanel);
 
     // Video container
     m_videoContainer = new QVideoWidget(m_roomTab);
@@ -136,6 +169,7 @@ void MainWindow::createUI()
     // Sidebar
     m_sidebar = new QWidget(m_roomTab);
     auto sidebarLayout = new QVBoxLayout(m_sidebar);
+    sidebarLayout->setSpacing(5);
 
     sidebarLayout->addWidget(new QLabel("Participants:", m_sidebar));
     m_participantsList = new QListWidget(m_sidebar);
@@ -172,7 +206,14 @@ void MainWindow::createUI()
     m_positionLabel = new QLabel("00:00", m_roomTab);
     m_statusLabel = new QLabel("Disconnected", m_roomTab);
 
-    auto controlsLayout = new QHBoxLayout;
+    m_positionSlider = new QSlider(Qt::Horizontal, m_roomTab);
+    m_positionSlider->setRange(0, 100);
+    m_positionSlider->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+    m_durationLabel = new QLabel("/ 00:00", m_roomTab);
+
+    auto controlsLayout = new QHBoxLayout();
+    controlsLayout->setSpacing(10);
     controlsLayout->addWidget(m_playPauseBtn);
     controlsLayout->addWidget(new QLabel("Volume:", m_roomTab));
     controlsLayout->addWidget(m_volumeSlider);
@@ -181,18 +222,29 @@ void MainWindow::createUI()
     controlsLayout->addStretch();
     controlsLayout->addWidget(m_positionLabel);
     controlsLayout->addWidget(m_statusLabel);
+    controlsLayout->addWidget(m_positionSlider);
+    controlsLayout->addWidget(m_durationLabel);
 
     // Add to room layout
     roomLayout->addWidget(m_mainSplitter);
     roomLayout->addLayout(controlsLayout);
 
-    m_tabWidget->addTab(m_roomTab, "Room");
-
     m_leaveRoomBtn = new QPushButton("Leave Room", m_roomTab);
-    controlsLayout->addWidget(m_leaveRoomBtn); // Добавляем в панель управления
+    controlsLayout->addWidget(m_leaveRoomBtn);
+
+    m_tabWidget->addTab(m_roomTab, "Room");
 
     // Start with Menu tab
     m_tabWidget->setCurrentIndex(0);
+}
+
+QString MainWindow::formatTime(qint64 ms) const
+{
+    int seconds = static_cast<int>(ms / 1000) % 60;
+    int minutes = static_cast<int>(ms / 60000);
+    return QString("%1:%2")
+        .arg(minutes, 2, 10, QLatin1Char('0'))
+        .arg(seconds, 2, 10, QLatin1Char('0'));
 }
 
 void MainWindow::setupConnections()
@@ -202,8 +254,40 @@ void MainWindow::setupConnections()
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::handleVolumeChange);
     connect(m_speedCombo, &QComboBox::currentTextChanged, this, &MainWindow::handleSpeedChange);
 
+    // Обновление позиции
+    connect(m_player, &Player::positionChanged, this, [this](qint64 position) {
+        if (!m_positionSlider->isSliderDown()) {
+            m_positionSlider->setValue(static_cast<int>(position));
+            updatePositionDisplay(position);
+        }
+        if (m_syncing) return;
+        qint64 now = QDateTime::currentMSecsSinceEpoch();
+        if (m_player->isPlaying() && (now - m_lastPlayerStateSendTime) >= 1000) {
+            m_client->sendPlayerState(!m_player->isPlaying(), position);
+            m_lastPlayerStateSendTime = now;
+        }
+        });
+   
+    // Обновление длительности
+    connect(m_player, &Player::durationChanged, this, [this](qint64 duration) {
+        m_positionSlider->setMaximum(static_cast<int>(duration));
+        m_durationLabel->setText("/ " + formatTime(duration));
+        });
+
+    // Обработка перемотки пользователем
+    connect(m_positionSlider, &QSlider::sliderReleased, this, [this]() {
+        bool wasPlaying = m_player->isPlaying(); // Сохраняем состояние
+        m_player->seek(static_cast<qint64>(m_positionSlider->value()));
+
+        // Восстанавливаем воспроизведение если было запущено
+        if (wasPlaying) {
+            QTimer::singleShot(100, this, [this]() {
+                m_player->play();
+                });
+        }
+        });
+
     // Player signals
-    connect(m_player, &Player::positionChanged, this, &MainWindow::updatePositionDisplay);
     connect(m_player, &Player::playbackStateChanged, this, &MainWindow::updatePlayerControls);
     connect(m_player, &Player::errorOccurred, this, &MainWindow::showNotification);
 
@@ -224,6 +308,8 @@ void MainWindow::setupConnections()
     connect(m_client, &Client::videoUrlReceived, this, &MainWindow::handleVideoUrlReceived);
     connect(m_client, &Client::errorOccurred, this, &MainWindow::showNotification);
     connect(m_client, &Client::filmsListReceived, this, &MainWindow::onFilmsListReceived);
+    connect(m_client, &Client::playerStateReceived,
+        this, &MainWindow::onPlayerStateReceived);
 
     connect(m_getFilmsBtn, &QPushButton::clicked, [this]() {
         m_client->sendMessage("GET_FILMS");
@@ -268,6 +354,11 @@ void MainWindow::setupConnections()
         m_tabWidget->setCurrentIndex(1);
         });
 
+    connect(m_searchEdit, &QLineEdit::textChanged,
+        this, &MainWindow::filterMovies);
+
+    connect(m_movieList, &QListWidget::itemDoubleClicked, this, &MainWindow::onMovieDoubleClicked);
+
 
     connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
         QString roomId = m_roomIdEdit->text().trimmed();
@@ -308,46 +399,156 @@ void MainWindow::setupConnections()
             m_participantsList->clear();
         }
         });
+    connect(m_player, &Player::playbackStateChanged, this, [this](QMediaPlayer::PlaybackState state) {
+        bool isPlaying = (state == QMediaPlayer::PlayingState);
+        updatePlayerControls(isPlaying);
+        if (m_syncing) return;
 
+        // Исправленный вызов
+        m_client->sendPlayerState(!isPlaying, m_player->currentPosition());
+        m_lastPlayerStateSendTime = QDateTime::currentMSecsSinceEpoch();
+        });
+
+    connect(m_player, &Player::positionChanged, this, [this](qint64 position) {
+        // Удален дублирующий вызов updatePositionDisplay
+        if (m_syncing) return;
+
+        qint64 now = QDateTime::currentMSecsSinceEpoch();
+        if (m_player->isPlaying() && (now - m_lastPlayerStateSendTime) >= 1000) {
+            m_client->sendPlayerState(!m_player->isPlaying(), position);
+            m_lastPlayerStateSendTime = now;
+        }
+        });
+
+    connect(m_positionSlider, &QSlider::sliderReleased, this, [this]() {
+        if (m_syncing) return;
+        qint64 pos = static_cast<qint64>(m_positionSlider->value());
+        m_player->seek(pos);
+
+        // Исправленный вызов
+        m_client->sendPlayerState(!m_player->isPlaying(), pos);
+        });
 }
 
 void MainWindow::applyStyleSheet()
 {
     setStyleSheet(
         "QMainWindow, QWidget { background-color: #2b2b2b; color: white; }"
+
+        // Общие стили для текстовых элементов
         "QLabel, QListWidget, QPushButton, QComboBox, QLineEdit { "
         "   font-size: 14px; "
         "   background-color: #3c3c3c; "
         "   color: white; "
         "   border: 1px solid #555; "
-        "   padding: 5px; "
         "}"
+
+        // Стили для кнопок
+        "QPushButton {"
+        "   padding: 6px 12px;"
+        "   min-height: 28px;"
+        "   border-radius: 4px;"
+        "}"
+        "QPushButton:hover { background-color: #4a4a4a; }"
+        "QPushButton:pressed { background-color: #2a2a2a; }"
+
+        // Стили для полей ввода
+        "QLineEdit, QComboBox {"
+        "   padding: 5px 8px;"
+        "   min-height: 28px;"
+        "   background: #333;"
+        "   border-radius: 4px;"
+        "}"
+        "QComboBox::drop-down { width: 20px; }"
+        "QLineEdit[maximumWidth=\"40\"] {"
+        "   padding: 5px 2px;"  // Уменьшаем горизонтальные отступы
+        "   text-align: center;"
+        "}"
+        "QLineEdit[maximumWidth=\"80\"] {"
+        "   padding: 5px 4px;"  // Уменьшаем горизонтальные отступы
+        "   text-align: center;"
+        "}"
+
+        "QLineEdit[placeholderText=\"Type to filter movies...\"] {"
+        "   max-width: 300px;" // Ограничиваем ширину
+        "   background: #333;"
+        "   border: 1px solid #555;"
+        "   border-radius: 4px;"
+        "   padding: 5px;"
+        "}"
+
+        // Стили для списков
+        "QListWidget {"
+        "   padding: 3px;"
+        "   background: #333;"
+        "   border-radius: 4px;"
+        "}"
+
+        // Стили для слайдеров
+        "QSlider::groove:horizontal {"
+        "   height: 6px;"
+        "   background: #444;"
+        "   border-radius: 3px;"
+        "}"
+        "QSlider::handle:horizontal {"
+        "   width: 16px;"
+        "   margin: -5px 0;"
+        "   background: #666;"
+        "   border-radius: 8px;"
+        "}"
+
+        // Стили для вкладок
         "QTabWidget::pane { border: 0; }"
         "QTabBar::tab { "
-        "   background: #3c3c3c; "
-        "   color: white; "
-        "   padding: 8px; "
-        "   border: 1px solid #555; "
-        "   border-bottom: none; "
-        "   border-top-left-radius: 4px; "
-        "   border-top-right-radius: 4px; "
+        "   padding: 8px 16px;"
+        "   background: #3c3c3c;"
+        "   color: white;"
+        "   border: 1px solid #555;"
+        "   border-bottom: none;"
+        "   border-top-left-radius: 4px;"
+        "   border-top-right-radius: 4px;"
         "}"
         "QTabBar::tab:selected { "
-        "   background: #555; "
-        "   border-color: #777; "
+        "   background: #555;"
+        "   border-color: #777;"
         "}"
-        "QLineEdit { background: #333; }"
+
+        // Статусная метка
+        "QLabel#statusLabel {"
+        "   padding: 2px 6px;"
+        "   border-radius: 3px;"
+        "}"
     );
+
+    // Применяем дополнительные стили к статусной метке
+    m_statusLabel->setObjectName("statusLabel");
 }
 
 void MainWindow::handlePlayPause()
 {
     if (m_player->isPlaying()) {
         m_player->pause();
+        m_client->sendPlayerState(true, m_player->currentPosition());
     }
     else {
         m_player->play();
+        m_client->sendPlayerState(false, m_player->currentPosition());
     }
+}
+
+void MainWindow::filterMovies(const QString& text)
+{
+    for (int i = 0; i < m_movieList->count(); ++i) {
+        QListWidgetItem* item = m_movieList->item(i);
+        bool match = item->text().contains(text, Qt::CaseInsensitive);
+        item->setHidden(!match);
+    }
+}
+
+void MainWindow::onMovieDoubleClicked(QListWidgetItem* item)
+{
+    int row = m_movieList->row(item);
+    m_filmNumberEdit->setText(QString::number(row + 1));
 }
 
 void MainWindow::handleVolumeChange(int volume)
@@ -397,6 +598,7 @@ void MainWindow::onFilmsListReceived(const QStringList& films)
     // Отображаем в списке
     m_movieList->clear();
     m_movieList->addItems(films);
+    m_searchEdit->clear();
 }
 
 void MainWindow::onRoomJoined(const QString& roomId)
@@ -470,6 +672,32 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
 
     updatePlayerControls(true);
     showNotification("Видео загружено: " + url.toString());
+}
+
+void MainWindow::onPlayerStateReceived(const QString& roomId,
+    const QString& senderNick,
+    bool isPaused,
+    qint64 position)
+{
+    Q_UNUSED(roomId);
+
+    // Всегда применяем состояние независимо от отправителя
+    m_syncing = true;
+
+    // Синхронизация состояния паузы
+    if (m_player->isPlaying() != !isPaused) {
+        if (isPaused) {
+            m_player->pause();
+        }
+        else {
+            m_player->play();
+        }
+    }
+
+    // Синхронизация позиции
+    m_player->seek(position);
+
+    m_syncing = false;
 }
 
 /*void MainWindow::handleVideoUrlReceived(const QUrl& url) {

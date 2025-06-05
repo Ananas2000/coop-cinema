@@ -23,6 +23,7 @@ public:
     void sendPlayerState(bool isPaused, qint64 position);
 
     QString currentRoom() const { return m_currentRoom; }
+    QString userNickname() const { return m_userNickname; }
 
 signals:
     void connected();
@@ -34,6 +35,7 @@ signals:
     void chatMessageReceived(const QString& user, const QString& message);
     void syncPositionReceived(qint64 position);
     void filmsListReceived(const QStringList& films);
+    void playerStateReceived(const QString& roomId, const QString& senderNick, bool isPaused, qint64 position);
 
 private slots:
     void onConnected();

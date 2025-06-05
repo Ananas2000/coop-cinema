@@ -5,6 +5,7 @@
 #include <QSplitter>
 #include <QPixmap>
 #include <QIcon>
+#include <QListWidgetItem> // Добавлен заголовок для QListWidgetItem
 #include "Client.h"
 #include "VideoRenderer.h"
 #include "Player.h"
@@ -13,6 +14,7 @@
 QT_BEGIN_NAMESPACE
 class QVideoWidget;
 class QListWidget;
+class QListWidgetItem; // Добавлено предварительное объявление
 class QPushButton;
 class QSlider;
 class QLabel;
@@ -35,12 +37,15 @@ private slots:
     void handleSpeedChange(const QString& speed);
     void sendReaction();
     void updatePositionDisplay(qint64 position);
+    void onPlayerStateReceived(const QString& roomId, const QString& senderNick, bool isPaused, qint64 position);
 
     void onRoomJoined(const QString& roomId);
     void onParticipantsUpdated(const QStringList& users);
     void onFilmsListReceived(const QStringList& films);
     void showNotification(const QString& message);
     void handleVideoUrlReceived(const QUrl& url);
+    void filterMovies(const QString& text);
+    void onMovieDoubleClicked(QListWidgetItem* item);
 
     void updatePlayerControls(bool isPlaying);
     void updateConnectionStatus(bool connected);
@@ -50,6 +55,9 @@ private:
     void setupConnections();
     void applyStyleSheet();
 
+    bool m_syncing = false;
+    qint64 m_lastPlayerStateSendTime = 0;
+
     Client* m_client;
     VideoRenderer* m_videoRenderer;
     Player* m_player;
@@ -57,13 +65,14 @@ private:
 
     // UI Elements
     QTabWidget* m_tabWidget;
-    QPushButton* m_getFilmsBtn; // Новая кнопка
-    QLineEdit* m_filmNumberEdit; // Поле для номера фильма
-    QPushButton* m_createRoomBtn; // Кнопка создания комнаты
+    QPushButton* m_getFilmsBtn;
+    QLineEdit* m_filmNumberEdit;
+    QPushButton* m_createRoomBtn;
+    QLineEdit* m_searchEdit;
+    QListWidget* m_movieList;
 
     // Menu Tab
     QWidget* m_menuTab;
-    QListWidget* m_movieList;
     QLineEdit* m_roomIdEdit;
     QPushButton* m_joinRoomBtn;
 
@@ -77,11 +86,14 @@ private:
     QListWidget* m_chatReactions;
     QPushButton* m_playPauseBtn;
     QSlider* m_volumeSlider;
+    QSlider* m_positionSlider;
+    QLabel* m_durationLabel;
     QComboBox* m_speedCombo;
     QLabel* m_positionLabel;
     QLabel* m_statusLabel;
-    QLabel* m_roomIdLabel; // Для отображения ID комнаты
+    QLabel* m_roomIdLabel;
     QPushButton* m_leaveRoomBtn;
+    QString formatTime(qint64 ms) const;
 
     QIcon m_playIcon;
     QIcon m_pauseIcon;

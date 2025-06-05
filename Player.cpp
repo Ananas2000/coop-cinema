@@ -25,6 +25,10 @@ Player::Player(QWidget* parentWidget, QObject* parent)
     connect(m_syncHandler, &SyncHandler::syncCorrection, this, &Player::updateSyncPosition);
     connect(m_videoRenderer, &VideoRenderer::frameProcessed, this, &Player::handleVideoFrame);
 
+    connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [this](qint64 dur) {
+        emit durationChanged(dur);
+        });
+
     m_positionTimer->start(500);
 }
 
@@ -34,19 +38,21 @@ Player::~Player()
     delete m_videoWidget;
 }
 
-void Player::initializePlayer()
-{
+void Player::initializePlayer() {
     m_mediaPlayer->setAudioOutput(m_audioOutput);
     m_mediaPlayer->setVideoOutput(m_videoWidget);
+
+    connect(m_mediaPlayer, &QMediaPlayer::positionChanged,
+        this, &Player::onMediaPlayerPositionChanged);
+
     connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
         this, &Player::onMediaStatusChanged);
     connect(m_mediaPlayer, &QMediaPlayer::errorOccurred,
         this, &Player::onErrorOccurred);
-    connect(m_mediaPlayer, &QMediaPlayer::positionChanged,
-        this, &Player::positionChanged);
     connect(m_mediaPlayer, &QMediaPlayer::playbackStateChanged,
         this, &Player::playbackStateChanged);
 }
+
 
 void Player::setupVideoRenderer()
 {
@@ -73,10 +79,14 @@ void Player::stop()
     m_positionTimer->stop();
 }
 
-void Player::seek(qint64 positionMs)
-{
+void Player::seek(qint64 positionMs) {
+    m_seeking = true;
+
     m_mediaPlayer->setPosition(positionMs);
     m_videoRenderer->seek(positionMs);
+    m_externalSync = false;
+
+    m_seeking = false;
 }
 
 void Player::setPlaybackRate(float rate)
@@ -84,6 +94,11 @@ void Player::setPlaybackRate(float rate)
     m_playbackRate = rate;
     m_mediaPlayer->setPlaybackRate(rate);
     m_videoRenderer->setPlaybackRate(rate);
+}
+
+qint64 Player::duration() const
+{
+    return m_mediaPlayer->duration();
 }
 
 void Player::setVolume(int volume)
@@ -103,7 +118,7 @@ void Player::setVideoOutput(QWidget* container) {
 void Player::setMedia(const QUrl& url) {
     if (url.isValid()) {
         m_mediaPlayer->setSource(url);
-        m_videoRenderer->initialize(m_videoWidget->videoSink(), 640, 360);
+        emit durationChanged(m_mediaPlayer->duration());
     }
 }
 
@@ -115,11 +130,6 @@ bool Player::isPlaying() const
 qint64 Player::currentPosition() const
 {
     return m_mediaPlayer->position();
-}
-
-qint64 Player::duration() const
-{
-    return m_mediaPlayer->duration();
 }
 
 void Player::updateSyncPosition(qint64 serverPosition)
@@ -142,15 +152,21 @@ void Player::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
     }
 }
 
+void Player::onMediaPlayerPositionChanged(qint64 position) {
+    if (m_seeking) return;
+    emit positionChanged(position);
+}
+
 void Player::onErrorOccurred(QMediaPlayer::Error error, const QString& errorString)
 {
     Q_UNUSED(error);
     emit errorOccurred(errorString);
 }
 
-void Player::updatePosition()
-{
-    emit positionChanged(currentPosition());
+void Player::updatePosition() {
+    if (!m_seeking) {
+        emit positionChanged(currentPosition());
+    }
 }
 
 void Player::applySyncCorrection(qint64 serverTime)

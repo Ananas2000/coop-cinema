@@ -140,6 +140,15 @@ void Client::onTextMessageReceived(const QString& message)
     else if (command == "SYNC_POSITION") {
         if (!parts.isEmpty()) emit syncPositionReceived(parts[0].toLongLong());
     }
+    else if (command == "PLAYER_STATE") {
+        if (parts.size() >= 4) {
+            QString roomId = parts[0];
+            QString senderNick = parts[1];
+            bool isPaused = (parts[2] == "1");
+            qint64 position = parts[3].toLongLong();
+            emit playerStateReceived(roomId, senderNick, isPaused, position);
+        }
+    }
     else if (command == "TEMPORARY_PROFILE") {
         if (parts.size() >= 2) {
             m_userNickname = parts[0];

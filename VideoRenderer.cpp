@@ -134,12 +134,10 @@ void VideoRenderer::setFrameDuration(qint64 durationMs)
     m_frameDuration = qMax(1LL, durationMs);
 }
 
-void VideoRenderer::seek(qint64 positionMs)
-{
+void VideoRenderer::seek(qint64 positionMs) {
     QMutexLocker locker(&m_queueMutex);
     m_lastAudioPosition = positionMs;
     m_baseTimestamp = positionMs;
-    m_frameQueue.clear(); // Очищаем очередь при перемотке
     m_renderTimer.restart();
     emit positionChanged(positionMs);
 }
@@ -283,6 +281,12 @@ QVideoFrame VideoRenderer::decodeFrame(const QByteArray& data)
         m_height = avFrame->height;
     }
 
+    if (swsContext) {
+        sws_freeContext(swsContext);
+        swsContext = nullptr;
+        av_frame_unref(swsFrame);
+    }
+
     if (!swsFrame->data[0]) {
         swsFrame->format = AV_PIX_FMT_RGB32;
         swsFrame->width = m_width;
@@ -315,22 +319,15 @@ QVideoFrame VideoRenderer::decodeFrame(const QByteArray& data)
     return QVideoFrame(frameCopy);
 }
 
-void VideoRenderer::adjustPresentationTime(QVideoFrame& frame)
-{
+void VideoRenderer::adjustPresentationTime(QVideoFrame& frame) {
     if (!frame.isValid()) return;
 
     const qint64 currentTime = currentPosition();
     const qint64 frameTime = frame.startTime();
-
     const qint64 delta = frameTime - currentTime;
 
     if (delta > 1) {
         QThread::msleep(static_cast<unsigned long>(delta));
-    }
-
-    else if (delta < -2 * m_frameDuration) {
-        qDebug() << "Dropping late frame, delta:" << delta << "ms";
-        frame = QVideoFrame();
     }
 }
 

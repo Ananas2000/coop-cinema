@@ -35,6 +35,7 @@ signals:
     void positionChanged(qint64 position);
     void playbackStateChanged(QMediaPlayer::PlaybackState state);
     void errorOccurred(const QString& error);
+    void durationChanged(qint64 duration);
 
 public slots:
     void updateSyncPosition(qint64 serverPosition);
@@ -44,12 +45,13 @@ private slots:
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onErrorOccurred(QMediaPlayer::Error error, const QString& errorString);
     void updatePosition();
+    void onMediaPlayerPositionChanged(qint64 position);
 
 private:
     void initializePlayer();
     void setupVideoRenderer();
     void applySyncCorrection(qint64 serverTime);
-
+    
     QMediaPlayer* m_mediaPlayer;
     QAudioOutput* m_audioOutput;
     QVideoWidget* m_videoWidget;
@@ -60,6 +62,7 @@ private:
     qint64 m_lastSyncPosition;
     float m_playbackRate;
     bool m_externalSync;
+    bool m_seeking = false;
 };
 
 #endif
