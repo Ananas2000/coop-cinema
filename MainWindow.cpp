@@ -23,8 +23,8 @@
 #include <QLineEdit>
 #include <QTabWidget>
 #include <QFile>
-#include <QDateTime>
 #include <msxml.h>
+#include <QDateTime>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -60,6 +60,10 @@ MainWindow::MainWindow(QWidget* parent)
     m_roomIdLabel->installEventFilter(this);
 
     m_client->connectToServer("localhost", 8888);
+
+    QTimer::singleShot(100, this, [this]() {
+        showMaximized();
+        });
 }
 
 MainWindow::~MainWindow() {}
@@ -173,7 +177,7 @@ void MainWindow::createUI()
 
     // Video container
     m_videoContainer = new QVideoWidget(m_roomTab);
-    m_videoContainer->setMaximumSize(1700, 800);
+    m_videoContainer->setMaximumSize(1700, 750);
     m_player->setVideoOutput(m_videoContainer);
 
     // Sidebar
@@ -185,14 +189,23 @@ void MainWindow::createUI()
     m_participantsList = new QListWidget(m_sidebar);
     sidebarLayout->addWidget(m_participantsList);
 
-    sidebarLayout->addWidget(new QLabel("Reactions:", m_sidebar));
     m_chatReactions = new QListWidget(m_sidebar);
-    m_chatReactions->addItems({ "👍", "👎", "😂", "😮", "😢", "🔥" });
+    sidebarLayout->addWidget(new QLabel("Reactions:", m_sidebar));
     sidebarLayout->addWidget(m_chatReactions);
 
-    auto reactionBtn = new QPushButton("Send Reaction", m_sidebar);
-    sidebarLayout->addWidget(reactionBtn);
-    connect(reactionBtn, &QPushButton::clicked, this, &MainWindow::sendReaction);
+    QWidget* reactionButtonsContainer = new QWidget(m_sidebar);
+    QHBoxLayout* buttonsLayout = new QHBoxLayout(reactionButtonsContainer);
+    buttonsLayout->setContentsMargins(0, 0, 0, 0);
+
+    const QString reactions[] = { "👍", "👎", "😂", "😮", "🔥" };
+    for (int i = 0; i < 5; ++i) {
+        m_reactionButtons[i] = new QPushButton(reactions[i], reactionButtonsContainer);
+        m_reactionButtons[i]->setFixedSize(40, 40);
+        m_reactionButtons[i]->setStyleSheet("font-size: 18px;");
+        buttonsLayout->addWidget(m_reactionButtons[i]);
+    }
+
+    sidebarLayout->addWidget(reactionButtonsContainer);
 
     // Splitter for video and sidebar
     m_mainSplitter = new QSplitter(Qt::Horizontal, m_roomTab);
@@ -250,10 +263,8 @@ void MainWindow::createUI()
     m_volLabel->setFixedHeight(40); // Фиксированная высота
     m_volLabel->setAlignment(Qt::AlignVCenter); // Выравнивание по вертикали
 
-    // Метка для скорости
-    m_speedLabel = new QLabel("Speed:", m_roomTab);
-    m_speedLabel->setFixedHeight(40); // Фиксированная высота
-    m_speedLabel->setAlignment(Qt::AlignVCenter); // Выравнивание по вертикали
+    m_leaveRoomBtn = new QPushButton("Leave Room", m_roomTab);
+    m_leaveRoomBtn->setFixedHeight(40);
 
     // Основной layout управления
     auto controlsLayout = new QHBoxLayout();
@@ -267,7 +278,6 @@ void MainWindow::createUI()
     controlsLayout->addWidget(m_volLabel); // Используем созданную метку
     controlsLayout->addWidget(m_volumeSlider);
     controlsLayout->addWidget(m_speedLabel); // Используем созданную метку
-    controlsLayout->addWidget(m_speedCombo);
     controlsLayout->addWidget(m_statusLabel);
     controlsLayout->addWidget(m_leaveRoomBtn);
 
@@ -275,14 +285,11 @@ void MainWindow::createUI()
     roomLayout->addWidget(m_mainSplitter);
     roomLayout->addLayout(controlsLayout);
 
-    m_leaveRoomBtn = new QPushButton("Leave Room", m_roomTab);
-    m_leaveRoomBtn->setFixedHeight(40);
-    controlsLayout->addWidget(m_leaveRoomBtn);
-
     m_tabWidget->addTab(m_roomTab, "Room");
 
     // Start with Menu tab
     m_tabWidget->setCurrentIndex(0);
+    m_speedCombo->hide();
 }
 
 QString MainWindow::formatTime(qint64 ms) const
@@ -348,6 +355,8 @@ void MainWindow::setupConnections()
     connect(m_client, &Client::participantsUpdated, this, &MainWindow::onParticipantsUpdated);
     connect(m_client, &Client::videoUrlReceived, this, &MainWindow::handleVideoUrlReceived);
     connect(m_client, &Client::errorOccurred, this, &MainWindow::showNotification);
+    connect(m_client, &Client::reactionReceived,
+        this, &MainWindow::onReactionReceived);
     connect(m_client, &Client::filmsListReceived, this, &MainWindow::onFilmsListReceived);
     connect(m_client, &Client::playerStateReceived,
         this, &MainWindow::onPlayerStateReceived);
@@ -407,6 +416,10 @@ void MainWindow::setupConnections()
 
     connect(m_movieList, &QListWidget::itemDoubleClicked, this, &MainWindow::onMovieDoubleClicked);
 
+    for (int i = 0; i < 5; ++i) {
+        connect(m_reactionButtons[i], &QPushButton::clicked,
+            this, [this, i]() { handleReaction(m_reactionButtons[i]->text()); });
+    }
 
     connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
         QString roomId = m_roomIdEdit->text().trimmed();
@@ -624,6 +637,31 @@ void MainWindow::filterMovies(const QString& text)
     }
 }
 
+void MainWindow::handleReaction(const QString& reaction) {
+    m_client->sendReaction(reaction);
+}
+
+void MainWindow::onReactionReceived(const QString& user, const QString& reaction)
+{
+    QString avatarPath = m_client->getAvatarPath(user);
+
+    QListWidgetItem* item = new QListWidgetItem(
+        QIcon(avatarPath),
+        QString("%1 - %2").arg(reaction, user)
+    );
+
+    item->setSizeHint(QSize(-1, 50));
+    m_chatReactions->addItem(item);
+    m_chatReactions->scrollToBottom();
+
+    m_notificationManager->showNotification(
+        QString("%1: %2").arg(user, reaction),
+        NotificationManager::Reaction,
+        2000
+    );
+}
+
+
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
 {
     if (watched == m_roomIdLabel && event->type() == QEvent::MouseButtonPress) {
@@ -727,28 +765,25 @@ void MainWindow::onParticipantsUpdated(const QStringList& users) {
         QString nickname = parts[0];
         QString avatarPath = parts[1];
 
+        // Добавляем пометку (you) для текущего пользователя
+        QString displayName = nickname;
+        if (nickname == m_client->userNickname()) {
+            displayName += " (you)";
+        }
+
         QListWidgetItem* item = new QListWidgetItem;
-        item->setText(nickname);
+        item->setText(displayName); // Устанавливаем текст с (you)
 
         // Загрузка и масштабирование аватарки
-        QPixmap pixmap;
-        if (QFile::exists(avatarPath)) {
-            pixmap.load(avatarPath);
-        }
-        else {
-            pixmap.load(":/avatars/0.png");
+        QPixmap pixmap(avatarPath);
+        if (pixmap.isNull()) {
+            pixmap.load(":/images/default_avatar.png");
         }
 
-        // Масштабируем изображение до нужного размера
         if (!pixmap.isNull()) {
-            // Увеличьте размер здесь (например, 64x64)
-            pixmap = pixmap.scaled(iconSize, iconSize,
-                Qt::KeepAspectRatio,
-                Qt::SmoothTransformation);
+            pixmap = pixmap.scaled(iconSize, iconSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             item->setIcon(QIcon(pixmap));
-
-            // Установите размер элемента списка
-            item->setSizeHint(QSize(-1, iconSize + 10)); // +10 для текста
+            item->setSizeHint(QSize(-1, iconSize + 10));
         }
 
         m_participantsList->addItem(item);
@@ -766,7 +801,7 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
     m_player->setPlaybackRate(1.0);
 
     m_player->setMedia(url);
-    m_player->play();
+    m_player->pause();
 
     updatePlayerControls(true);
     showNotification("Видео загружено: " + url.toString());

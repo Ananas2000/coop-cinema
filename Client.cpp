@@ -1,4 +1,4 @@
-#include "Client.h"
+п»ї#include "Client.h"
 #include <QTcpSocket>
 #include <QStringList>
 #include <QDebug>
@@ -14,7 +14,7 @@ Client::Client(QObject* parent)
 {
     connect(m_socket, &QTcpSocket::connected, this, &Client::onConnected);
     connect(m_socket, &QTcpSocket::disconnected, this, &Client::onDisconnected);
-    connect(m_socket, &QTcpSocket::readyRead, this, &Client::onReadyRead); // Чтение данных
+    connect(m_socket, &QTcpSocket::readyRead, this, &Client::onReadyRead); // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
     connect(m_socket, &QTcpSocket::errorOccurred, this, &Client::onErrorOccurred);
 
     QString avatarsDir = QApplication::applicationDirPath() + "/avatars/";
@@ -57,8 +57,12 @@ void Client::createRoom(int filmIndex) {
 void Client::joinRoom(const QString& roomId)
 {
     m_currentRoom = roomId;
-    sendMessage("JOIN_ROOM"); // Команда присоединения
-    sendMessage(roomId); // Отправка ID комнаты
+    sendMessage("JOIN_ROOM"); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+    sendMessage(roomId); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ID пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+}
+
+QString Client::getAvatarPath(const QString& nickname) const {
+    return m_userAvatars.value(nickname, ":/images/default_avatar.png");
 }
 
 void Client::sendReaction(const QString& reaction)
@@ -86,11 +90,11 @@ void Client::onDisconnected()
     emit disconnected();
 }
 
-void Client::onReadyRead() // Обработка входящих данных
+void Client::onReadyRead() // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
 {
     while (m_socket->canReadLine()) {
         QString message = QString::fromUtf8(m_socket->readLine()).trimmed();
-        onTextMessageReceived(message); // Передаём данные в обработчик
+        onTextMessageReceived(message); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     }
 }
 
@@ -147,9 +151,9 @@ void Client::onTextMessageReceived(const QString& message)
         }
     }
     else if (command == "TEMPORARY_PROFILE") {
-        if (parts.size() >= 2) {
+        if (!parts.isEmpty()) {
             m_userNickname = parts[0];
-            m_userAvatar = parts[1];
+            assignAvatar(m_userNickname); // Р“РµРЅРµСЂРёСЂСѓРµРј Р°РІР°С‚Р°СЂ
         }
     }
     else if (command == "VIDEO_URL") {
@@ -165,7 +169,12 @@ void Client::onTextMessageReceived(const QString& message)
     else if (command == "ROOM_ENTERED") {
         if (!parts.isEmpty()) {
             m_currentRoom = parts[0];
-            emit roomCreated(parts[0]); // Используем тот же сигнал, что и при создании комнаты
+            emit roomCreated(parts[0]); // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        }
+    }
+    else if (command == "REACTION") {
+        if (parts.size() >= 2) {
+            emit reactionReceived(parts[0], parts[1]);
         }
     }
 }
@@ -195,7 +204,7 @@ void Client::assignAvatar(const QString& userNickname)
         return;
     }
 
-    // Используем относительные пути вместо абсолютных
+    // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
     QString avatar = QString("avatars/%0.png").arg(m_avatarIndex % 10);
     m_userAvatars[userNickname] = avatar;
     m_avatarIndex++;

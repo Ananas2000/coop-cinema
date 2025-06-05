@@ -47,6 +47,8 @@ private slots:
     void filterMovies(const QString& text);
     void onMovieDoubleClicked(QListWidgetItem* item);
     void copyRoomId();
+    void handleReaction(const QString& reaction);
+    void onReactionReceived(const QString& user, const QString& reaction);
 
     void updatePlayerControls(bool isPlaying);
     void updateConnectionStatus(bool connected);
@@ -92,6 +94,7 @@ private:
     QLabel* m_volLabel;
     QLabel* m_speedLabel;
     QComboBox* m_speedCombo;
+    QPushButton* m_reactionButtons[5];
     QLabel* m_positionLabel;
     QLabel* m_statusLabel;
     QLabel* m_roomIdLabel;

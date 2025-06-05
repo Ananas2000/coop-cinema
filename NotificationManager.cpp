@@ -108,7 +108,12 @@ void NotificationManager::applyStyle(NotificationType type)
     case Info:     bgColor = "#2d8cf0"; break;
     case Warning:  bgColor = "#f90";    break;
     case Error:    bgColor = "#ed4014"; break;
-    case Reaction: bgColor = "#19be6b"; break;
+    case Reaction:
+        m_notificationLabel->setStyleSheet(
+            "font-size: 24px; background-color: #19be6b; color: white; "
+            "border-radius: 6px; padding: 20px;"
+        );
+        break;
     }
 
     m_notificationLabel->setStyleSheet(QString(

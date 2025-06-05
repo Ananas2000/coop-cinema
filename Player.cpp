@@ -1,4 +1,3 @@
-// Player.cpp
 #include "Player.h"
 #include <QVBoxLayout>
 #include <QNetworkRequest>

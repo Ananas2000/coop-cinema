@@ -21,6 +21,7 @@ public:
     void sendReaction(const QString& reaction);
     void sendMessage(const QString& message);
     void sendPlayerState(bool isPaused, qint64 position);
+    QString getAvatarPath(const QString& nickname) const;
 
     QString currentRoom() const { return m_currentRoom; }
     QString userNickname() const { return m_userNickname; }
@@ -33,6 +34,7 @@ signals:
     void participantsUpdated(const QStringList& users);
     void videoUrlReceived(const QUrl& url);
     void chatMessageReceived(const QString& user, const QString& message);
+    void reactionReceived(const QString& user, const QString& reaction);
     void syncPositionReceived(qint64 position);
     void filmsListReceived(const QStringList& films);
     void playerStateReceived(const QString& roomId, const QString& senderNick, bool isPaused, qint64 position);
