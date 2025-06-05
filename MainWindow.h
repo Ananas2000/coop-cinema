@@ -3,18 +3,15 @@
 
 #include <QMainWindow>
 #include <QSplitter>
-#include <QPixmap>
 #include <QIcon>
-#include <QListWidgetItem> // ???????? ????????? ??? QListWidgetItem
 #include "Client.h"
-#include "VideoRenderer.h"
 #include "Player.h"
 #include "NotificationManager.h"
 
 QT_BEGIN_NAMESPACE
 class QVideoWidget;
 class QListWidget;
-class QListWidgetItem; // ????????? ??????????????? ??????????
+class QListWidgetItem;
 class QPushButton;
 class QSlider;
 class QLabel;
@@ -38,7 +35,6 @@ private slots:
     void sendReaction();
     void updatePositionDisplay(qint64 position);
     void onPlayerStateReceived(const QString& roomId, const QString& senderNick, bool isPaused, qint64 position);
-
     void onRoomJoined(const QString& roomId);
     void onParticipantsUpdated(const QStringList& users);
     void onFilmsListReceived(const QStringList& films);
@@ -49,7 +45,6 @@ private slots:
     void copyRoomId();
     void handleReaction(const QString& reaction);
     void onReactionReceived(const QString& user, const QString& reaction);
-
     void updatePlayerControls(bool isPlaying);
     void updateConnectionStatus(bool connected);
 
@@ -62,24 +57,18 @@ private:
     qint64 m_lastPlayerStateSendTime = 0;
 
     Client* m_client;
-    VideoRenderer* m_videoRenderer;
     Player* m_player;
     NotificationManager* m_notificationManager;
 
-    // UI Elements
     QTabWidget* m_tabWidget;
     QPushButton* m_getFilmsBtn;
     QLineEdit* m_filmNumberEdit;
     QPushButton* m_createRoomBtn;
     QLineEdit* m_searchEdit;
     QListWidget* m_movieList;
-
-    // Menu Tab
     QWidget* m_menuTab;
     QLineEdit* m_roomIdEdit;
     QPushButton* m_joinRoomBtn;
-
-    // Room Tab
     QWidget* m_roomTab;
     QWidget* m_centralWidget;
     QSplitter* m_mainSplitter;
@@ -92,7 +81,6 @@ private:
     QSlider* m_positionSlider;
     QLabel* m_durationLabel;
     QLabel* m_volLabel;
-    QLabel* m_speedLabel;
     QComboBox* m_speedCombo;
     QPushButton* m_reactionButtons[5];
     QLabel* m_positionLabel;

@@ -39,37 +39,27 @@ template <> constexpr inline auto VideoRenderer::qt_create_metaobjectdata<qt_met
     namespace QMC = QtMocConstants;
     QtMocHelpers::StringRefStorage qt_stringData {
         "VideoRenderer",
-        "frameProcessed",
-        "",
-        "QVideoFrame",
-        "frame",
         "errorOccurred",
+        "",
         "error",
         "positionChanged",
         "position",
-        "handleAudioPositionChanged",
-        "processFrames"
+        "handleAudioPositionChanged"
     };
 
     QtMocHelpers::UintData qt_methods {
-        // Signal 'frameProcessed'
-        QtMocHelpers::SignalData<void(const QVideoFrame &)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { 0x80000000 | 3, 4 },
-        }}),
         // Signal 'errorOccurred'
-        QtMocHelpers::SignalData<void(const QString &)>(5, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::QString, 6 },
+        QtMocHelpers::SignalData<void(const QString &)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QString, 3 },
         }}),
         // Signal 'positionChanged'
-        QtMocHelpers::SignalData<void(qint64)>(7, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::LongLong, 8 },
+        QtMocHelpers::SignalData<void(qint64)>(4, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::LongLong, 5 },
         }}),
         // Slot 'handleAudioPositionChanged'
-        QtMocHelpers::SlotData<void(qint64)>(9, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::LongLong, 8 },
+        QtMocHelpers::SlotData<void(qint64)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::LongLong, 5 },
         }}),
-        // Slot 'processFrames'
-        QtMocHelpers::SlotData<void()>(10, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -93,32 +83,16 @@ void VideoRenderer::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
     auto *_t = static_cast<VideoRenderer *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: _t->frameProcessed((*reinterpret_cast< std::add_pointer_t<QVideoFrame>>(_a[1]))); break;
-        case 1: _t->errorOccurred((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 2: _t->positionChanged((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
-        case 3: _t->handleAudioPositionChanged((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
-        case 4: _t->processFrames(); break;
+        case 0: _t->errorOccurred((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 1: _t->positionChanged((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
+        case 2: _t->handleAudioPositionChanged((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
         default: ;
         }
     }
-    if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        switch (_id) {
-        default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
-        case 0:
-            switch (*reinterpret_cast<int*>(_a[1])) {
-            default: *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType(); break;
-            case 0:
-                *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType::fromType< QVideoFrame >(); break;
-            }
-            break;
-        }
-    }
     if (_c == QMetaObject::IndexOfMethod) {
-        if (QtMocHelpers::indexOfMethod<void (VideoRenderer::*)(const QVideoFrame & )>(_a, &VideoRenderer::frameProcessed, 0))
+        if (QtMocHelpers::indexOfMethod<void (VideoRenderer::*)(const QString & )>(_a, &VideoRenderer::errorOccurred, 0))
             return;
-        if (QtMocHelpers::indexOfMethod<void (VideoRenderer::*)(const QString & )>(_a, &VideoRenderer::errorOccurred, 1))
-            return;
-        if (QtMocHelpers::indexOfMethod<void (VideoRenderer::*)(qint64 )>(_a, &VideoRenderer::positionChanged, 2))
+        if (QtMocHelpers::indexOfMethod<void (VideoRenderer::*)(qint64 )>(_a, &VideoRenderer::positionChanged, 1))
             return;
     }
 }
@@ -142,33 +116,27 @@ int VideoRenderer::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 3)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 3;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
-            qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        if (_id < 3)
+            *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
+        _id -= 3;
     }
     return _id;
 }
 
 // SIGNAL 0
-void VideoRenderer::frameProcessed(const QVideoFrame & _t1)
+void VideoRenderer::errorOccurred(const QString & _t1)
 {
     QMetaObject::activate<void>(this, &staticMetaObject, 0, nullptr, _t1);
 }
 
 // SIGNAL 1
-void VideoRenderer::errorOccurred(const QString & _t1)
-{
-    QMetaObject::activate<void>(this, &staticMetaObject, 1, nullptr, _t1);
-}
-
-// SIGNAL 2
 void VideoRenderer::positionChanged(qint64 _t1)
 {
-    QMetaObject::activate<void>(this, &staticMetaObject, 2, nullptr, _t1);
+    QMetaObject::activate<void>(this, &staticMetaObject, 1, nullptr, _t1);
 }
 QT_WARNING_POP

@@ -41,9 +41,6 @@
     <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -65,9 +62,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="SettingsManager.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="VideoRenderer.h">
       <Filter>Header Files</Filter>
     </QtMoc>
   </ItemGroup>

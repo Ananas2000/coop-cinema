@@ -4,7 +4,6 @@ SettingsManager::SettingsManager(QObject* parent)
     : QObject(parent),
     m_settings(QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) + "/settings.ini", QSettings::IniFormat)
 {
-    migrateOldSettings();
     validateNetworkSettings();
 }
 
@@ -108,8 +107,4 @@ void SettingsManager::validateNetworkSettings() {
     if (port <= 0 || port > 65535) {
         setServerPort(8888);
     }
-}
-
-void SettingsManager::migrateOldSettings() {
-    // Здесь можно добавить миграцию старых настроек, если формат изменился.
 }

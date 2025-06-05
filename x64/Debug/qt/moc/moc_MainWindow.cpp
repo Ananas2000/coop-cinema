@@ -49,8 +49,11 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "sendReaction",
         "updatePositionDisplay",
         "position",
-        "onRoomJoined",
+        "onPlayerStateReceived",
         "roomId",
+        "senderNick",
+        "isPaused",
+        "onRoomJoined",
         "onParticipantsUpdated",
         "users",
         "onFilmsListReceived",
@@ -59,6 +62,16 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "message",
         "handleVideoUrlReceived",
         "url",
+        "filterMovies",
+        "text",
+        "onMovieDoubleClicked",
+        "QListWidgetItem*",
+        "item",
+        "copyRoomId",
+        "handleReaction",
+        "reaction",
+        "onReactionReceived",
+        "user",
         "updatePlayerControls",
         "isPlaying",
         "updateConnectionStatus",
@@ -82,33 +95,55 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         QtMocHelpers::SlotData<void(qint64)>(8, 2, QMC::AccessPrivate, QMetaType::Void, {{
             { QMetaType::LongLong, 9 },
         }}),
+        // Slot 'onPlayerStateReceived'
+        QtMocHelpers::SlotData<void(const QString &, const QString &, bool, qint64)>(10, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 11 }, { QMetaType::QString, 12 }, { QMetaType::Bool, 13 }, { QMetaType::LongLong, 9 },
+        }}),
         // Slot 'onRoomJoined'
-        QtMocHelpers::SlotData<void(const QString &)>(10, 2, QMC::AccessPrivate, QMetaType::Void, {{
+        QtMocHelpers::SlotData<void(const QString &)>(14, 2, QMC::AccessPrivate, QMetaType::Void, {{
             { QMetaType::QString, 11 },
         }}),
         // Slot 'onParticipantsUpdated'
-        QtMocHelpers::SlotData<void(const QStringList &)>(12, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QStringList, 13 },
+        QtMocHelpers::SlotData<void(const QStringList &)>(15, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QStringList, 16 },
         }}),
         // Slot 'onFilmsListReceived'
-        QtMocHelpers::SlotData<void(const QStringList &)>(14, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QStringList, 15 },
+        QtMocHelpers::SlotData<void(const QStringList &)>(17, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QStringList, 18 },
         }}),
         // Slot 'showNotification'
-        QtMocHelpers::SlotData<void(const QString &)>(16, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QString, 17 },
+        QtMocHelpers::SlotData<void(const QString &)>(19, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 20 },
         }}),
         // Slot 'handleVideoUrlReceived'
-        QtMocHelpers::SlotData<void(const QUrl &)>(18, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QUrl, 19 },
+        QtMocHelpers::SlotData<void(const QUrl &)>(21, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QUrl, 22 },
+        }}),
+        // Slot 'filterMovies'
+        QtMocHelpers::SlotData<void(const QString &)>(23, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 24 },
+        }}),
+        // Slot 'onMovieDoubleClicked'
+        QtMocHelpers::SlotData<void(QListWidgetItem *)>(25, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 26, 27 },
+        }}),
+        // Slot 'copyRoomId'
+        QtMocHelpers::SlotData<void()>(28, 2, QMC::AccessPrivate, QMetaType::Void),
+        // Slot 'handleReaction'
+        QtMocHelpers::SlotData<void(const QString &)>(29, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 30 },
+        }}),
+        // Slot 'onReactionReceived'
+        QtMocHelpers::SlotData<void(const QString &, const QString &)>(31, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 32 }, { QMetaType::QString, 30 },
         }}),
         // Slot 'updatePlayerControls'
-        QtMocHelpers::SlotData<void(bool)>(20, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::Bool, 21 },
+        QtMocHelpers::SlotData<void(bool)>(33, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Bool, 34 },
         }}),
         // Slot 'updateConnectionStatus'
-        QtMocHelpers::SlotData<void(bool)>(22, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::Bool, 23 },
+        QtMocHelpers::SlotData<void(bool)>(35, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Bool, 36 },
         }}),
     };
     QtMocHelpers::UintData qt_properties {
@@ -138,13 +173,19 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 2: _t->handleSpeedChange((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 3: _t->sendReaction(); break;
         case 4: _t->updatePositionDisplay((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
-        case 5: _t->onRoomJoined((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 6: _t->onParticipantsUpdated((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
-        case 7: _t->onFilmsListReceived((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
-        case 8: _t->showNotification((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 9: _t->handleVideoUrlReceived((*reinterpret_cast< std::add_pointer_t<QUrl>>(_a[1]))); break;
-        case 10: _t->updatePlayerControls((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
-        case 11: _t->updateConnectionStatus((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
+        case 5: _t->onPlayerStateReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2])),(*reinterpret_cast< std::add_pointer_t<bool>>(_a[3])),(*reinterpret_cast< std::add_pointer_t<qint64>>(_a[4]))); break;
+        case 6: _t->onRoomJoined((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 7: _t->onParticipantsUpdated((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
+        case 8: _t->onFilmsListReceived((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
+        case 9: _t->showNotification((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 10: _t->handleVideoUrlReceived((*reinterpret_cast< std::add_pointer_t<QUrl>>(_a[1]))); break;
+        case 11: _t->filterMovies((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 12: _t->onMovieDoubleClicked((*reinterpret_cast< std::add_pointer_t<QListWidgetItem*>>(_a[1]))); break;
+        case 13: _t->copyRoomId(); break;
+        case 14: _t->handleReaction((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 15: _t->onReactionReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
+        case 16: _t->updatePlayerControls((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
+        case 17: _t->updateConnectionStatus((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
         default: ;
         }
     }
@@ -169,14 +210,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 12)
+        if (_id < 18)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 12;
+        _id -= 18;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 12)
+        if (_id < 18)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 12;
+        _id -= 18;
     }
     return _id;
 }

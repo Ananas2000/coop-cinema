@@ -5,7 +5,6 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QVideoWidget>
-#include "VideoRenderer.h"
 
 class Player : public QObject
 {
@@ -18,12 +17,10 @@ public:
     void pause();
     void stop();
     void seek(qint64 positionMs);
-
     void setPlaybackRate(float rate);
     void setVolume(int volume);
     void setVideoOutput(QWidget* container);
     void setMedia(const QUrl& url);
-
     bool isPlaying() const;
     qint64 currentPosition() const;
     qint64 duration() const;
@@ -34,9 +31,6 @@ signals:
     void errorOccurred(const QString& error);
     void durationChanged(qint64 duration);
 
-public slots:
-    void handleVideoFrame(const QVideoFrame& frame);
-
 private slots:
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onErrorOccurred(QMediaPlayer::Error error, const QString& errorString);
@@ -44,13 +38,10 @@ private slots:
 
 private:
     void initializePlayer();
-    void setupVideoRenderer();
 
     QMediaPlayer* m_mediaPlayer;
     QAudioOutput* m_audioOutput;
     QVideoWidget* m_videoWidget;
-    VideoRenderer* m_videoRenderer;
-
     float m_playbackRate;
     bool m_seeking = false;
 };

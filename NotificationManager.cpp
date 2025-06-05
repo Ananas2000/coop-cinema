@@ -1,8 +1,6 @@
 #include "NotificationManager.h"
-
 #include <QVBoxLayout>
 #include <QGraphicsOpacityEffect>
-#include <QMouseEvent>
 
 NotificationManager::NotificationManager(QWidget* parentWidget, QObject* parent)
     : QObject(parent),

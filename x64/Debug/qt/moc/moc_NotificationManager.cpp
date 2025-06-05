@@ -40,10 +40,8 @@ template <> constexpr inline auto NotificationManager::qt_create_metaobjectdata<
     namespace QMC = QtMocConstants;
     QtMocHelpers::StringRefStorage qt_stringData {
         "NotificationManager",
-        "notificationClicked",
-        "",
-        "message",
         "setNotificationsEnabled",
+        "",
         "enabled",
         "setDisplayDuration",
         "durationMs",
@@ -57,32 +55,28 @@ template <> constexpr inline auto NotificationManager::qt_create_metaobjectdata<
     };
 
     QtMocHelpers::UintData qt_methods {
-        // Signal 'notificationClicked'
-        QtMocHelpers::SignalData<void(const QString &)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::QString, 3 },
-        }}),
         // Slot 'setNotificationsEnabled'
-        QtMocHelpers::SlotData<void(bool)>(4, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::Bool, 5 },
+        QtMocHelpers::SlotData<void(bool)>(1, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::Bool, 3 },
         }}),
         // Slot 'setDisplayDuration'
-        QtMocHelpers::SlotData<void(int)>(6, 2, QMC::AccessPublic, QMetaType::Void, {{
-            { QMetaType::Int, 7 },
+        QtMocHelpers::SlotData<void(int)>(4, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::Int, 5 },
         }}),
         // Slot 'processNextNotification'
-        QtMocHelpers::SlotData<void()>(8, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(6, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'hideCurrentNotification'
-        QtMocHelpers::SlotData<void()>(9, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(7, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
     QtMocHelpers::UintData qt_enums {
         // enum 'NotificationType'
-        QtMocHelpers::EnumData<NotificationType>(10, 10, QMC::EnumFlags{}).add({
-            {   11, NotificationType::Info },
-            {   12, NotificationType::Warning },
-            {   13, NotificationType::Error },
-            {   14, NotificationType::Reaction },
+        QtMocHelpers::EnumData<NotificationType>(8, 8, QMC::EnumFlags{}).add({
+            {    9, NotificationType::Info },
+            {   10, NotificationType::Warning },
+            {   11, NotificationType::Error },
+            {   12, NotificationType::Reaction },
         }),
     };
     return QtMocHelpers::metaObjectData<NotificationManager, qt_meta_tag_ZN19NotificationManagerE_t>(QMC::MetaObjectFlag{}, qt_stringData,
@@ -103,17 +97,12 @@ void NotificationManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, 
     auto *_t = static_cast<NotificationManager *>(_o);
     if (_c == QMetaObject::InvokeMetaMethod) {
         switch (_id) {
-        case 0: _t->notificationClicked((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 1: _t->setNotificationsEnabled((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
-        case 2: _t->setDisplayDuration((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
-        case 3: _t->processNextNotification(); break;
-        case 4: _t->hideCurrentNotification(); break;
+        case 0: _t->setNotificationsEnabled((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
+        case 1: _t->setDisplayDuration((*reinterpret_cast< std::add_pointer_t<int>>(_a[1]))); break;
+        case 2: _t->processNextNotification(); break;
+        case 3: _t->hideCurrentNotification(); break;
         default: ;
         }
-    }
-    if (_c == QMetaObject::IndexOfMethod) {
-        if (QtMocHelpers::indexOfMethod<void (NotificationManager::*)(const QString & )>(_a, &NotificationManager::notificationClicked, 0))
-            return;
     }
 }
 
@@ -136,21 +125,15 @@ int NotificationManager::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 4)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 4;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
+        if (_id < 4)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 5;
+        _id -= 4;
     }
     return _id;
-}
-
-// SIGNAL 0
-void NotificationManager::notificationClicked(const QString & _t1)
-{
-    QMetaObject::activate<void>(this, &staticMetaObject, 0, nullptr, _t1);
 }
 QT_WARNING_POP

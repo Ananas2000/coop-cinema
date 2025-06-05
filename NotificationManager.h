@@ -30,9 +30,6 @@ public slots:
     void setNotificationsEnabled(bool enabled);
     void setDisplayDuration(int durationMs);
 
-signals:
-    void notificationClicked(const QString& message);
-
 private slots:
     void processNextNotification();
     void hideCurrentNotification();
@@ -53,10 +50,9 @@ private:
     QPropertyAnimation* m_animation;
     QQueue<Notification> m_notificationQueue;
     QTimer m_displayTimer;
-
     bool m_isShowing = false;
     bool m_enabled = true;
     int m_defaultDuration = 3000;
 };
 
-#endif 
+#endif

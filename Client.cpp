@@ -1,11 +1,9 @@
 ﻿#include "Client.h"
+#include <thread>
 #include <QTcpSocket>
-#include <QStringList>
 #include <QDebug>
 #include <QApplication>
 #include <QDir>
-#include <QDataStream>
-#include <thread>
 
 Client::Client(QObject* parent)
     : QObject(parent),
@@ -14,11 +12,10 @@ Client::Client(QObject* parent)
 {
     connect(m_socket, &QTcpSocket::connected, this, &Client::onConnected);
     connect(m_socket, &QTcpSocket::disconnected, this, &Client::onDisconnected);
-    connect(m_socket, &QTcpSocket::readyRead, this, &Client::onReadyRead); // ������ ������
+    connect(m_socket, &QTcpSocket::readyRead, this, &Client::onReadyRead);
     connect(m_socket, &QTcpSocket::errorOccurred, this, &Client::onErrorOccurred);
 
     QString avatarsDir = QApplication::applicationDirPath() + "/avatars/";
-
     QDir dir;
     if (!dir.exists(avatarsDir)) {
         dir.mkpath(avatarsDir);
@@ -57,8 +54,8 @@ void Client::createRoom(int filmIndex) {
 void Client::joinRoom(const QString& roomId)
 {
     m_currentRoom = roomId;
-    sendMessage("JOIN_ROOM"); // ������� �������������
-    sendMessage(roomId); // �������� ID �������
+    sendMessage("JOIN_ROOM");
+    sendMessage(roomId);
 }
 
 QString Client::getAvatarPath(const QString& nickname) const {
@@ -90,11 +87,11 @@ void Client::onDisconnected()
     emit disconnected();
 }
 
-void Client::onReadyRead() // ��������� �������� ������
+void Client::onReadyRead()
 {
     while (m_socket->canReadLine()) {
         QString message = QString::fromUtf8(m_socket->readLine()).trimmed();
-        onTextMessageReceived(message); // ������� ������ � ����������
+        onTextMessageReceived(message);
     }
 }
 
@@ -118,14 +115,12 @@ void Client::onTextMessageReceived(const QString& message)
         }
         emit filmsListReceived(films);
     }
-
     else if (command == "ROOM_CREATED") {
         if (!parts.isEmpty()) {
             m_currentRoom = parts[0];
             emit roomCreated(parts[0]);
         }
     }
-
     else if (command == "PARTICIPANTS_UPDATE") {
         for (const QString& user : parts) {
             assignAvatar(user);
@@ -137,9 +132,6 @@ void Client::onTextMessageReceived(const QString& message)
         }
 
         emit participantsUpdated(usersWithAvatars);
-    }
-    else if (command == "CHAT_MESSAGE") {
-        if (parts.size() >= 2) emit chatMessageReceived(parts[0], parts[1]);
     }
     else if (command == "PLAYER_STATE") {
         if (parts.size() >= 4) {
@@ -153,13 +145,12 @@ void Client::onTextMessageReceived(const QString& message)
     else if (command == "TEMPORARY_PROFILE") {
         if (!parts.isEmpty()) {
             m_userNickname = parts[0];
-            assignAvatar(m_userNickname); // Генерируем аватар
+            assignAvatar(m_userNickname);
         }
     }
     else if (command == "VIDEO_URL") {
         if (!parts.isEmpty()) {
             QUrl url(parts[0]);
-
             emit videoUrlReceived(url);
         }
     }
@@ -169,7 +160,7 @@ void Client::onTextMessageReceived(const QString& message)
     else if (command == "ROOM_ENTERED") {
         if (!parts.isEmpty()) {
             m_currentRoom = parts[0];
-            emit roomCreated(parts[0]); // ���������� ��� �� ������, ��� � ��� �������� �������
+            emit roomCreated(parts[0]);
         }
     }
     else if (command == "REACTION") {
@@ -193,21 +184,13 @@ void Client::sendMessage(const QString& message)
     }
 }
 
-void Client::processVideoData(const QByteArray& data)
-{
-    Q_UNUSED(data)
-}
-
 void Client::assignAvatar(const QString& userNickname)
 {
     if (m_userAvatars.contains(userNickname)) {
         return;
     }
 
-    // ���������� ������������� ���� ������ ����������
     QString avatar = QString("avatars/%0.png").arg(m_avatarIndex % 10);
     m_userAvatars[userNickname] = avatar;
     m_avatarIndex++;
-
-    qDebug() << "Assigned avatar" << avatar << "to user" << userNickname;
 }

@@ -4,7 +4,6 @@
 #include <QObject>
 #include <QSettings>
 #include <QStandardPaths>
-#include <QDebug>
 
 class SettingsManager : public QObject
 {
@@ -66,6 +65,6 @@ private:
 
     QString categoryToString(SettingsCategory category) const;
     void validateNetworkSettings();
-    void migrateOldSettings();
 };
+
 #endif
