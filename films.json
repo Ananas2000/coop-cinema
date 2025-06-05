@@ -1,34 +1,19 @@
 {
     "films": [
         {
-            "title": "Django Unchained",
+            "title": "Flashed Cat",
             "director": "Tarantino",
-            "path": "/films/django.mp4"
+            "path": "flash.mp4"
         },
         {
-            "title": "Pulp Fiction",
-            "director": "Tarantino",
-            "path": "/films/pulp.mp4"
+            "title": "Boomed Cat",
+            "director": "Guy Ritchie",
+            "path": "boom.mp4"
         },
         {
-            "title": "Pidoras",
-            "director": "gandon",
-            "path": "/films/pulp.mp4"
-        },
-        {
-            "title": "Pidwereworas",
-            "director": "gandwerweron",
-            "path": "/films/pulp.mp4"
-        },
-        {
-            "title": "rtyrtuyhfjgh",
-            "director": "gavbnvbvbnvfghbnndon",
-            "path": "/films/pulp.mp4"
-        },
-        {
-            "title": "rtyytutyu",
-            "director": "gbnvbnvbn",
-            "path": "/films/pulp.mp4"
+            "title": "Backrooms",
+            "director": "Recording",
+            "path": "backrooms.mp4"
         }
     ]
 }
