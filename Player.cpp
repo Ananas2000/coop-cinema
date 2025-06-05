@@ -1,5 +1,6 @@
 #include "Player.h"
 #include <QVBoxLayout>
+#include <QNetworkRequest>
 #include <QDebug>
 
 Player::Player(QWidget* parentWidget, QObject* parent)
@@ -36,6 +37,7 @@ Player::~Player()
 void Player::initializePlayer()
 {
     m_mediaPlayer->setAudioOutput(m_audioOutput);
+    m_mediaPlayer->setVideoOutput(m_videoWidget);
     connect(m_mediaPlayer, &QMediaPlayer::mediaStatusChanged,
         this, &Player::onMediaStatusChanged);
     connect(m_mediaPlayer, &QMediaPlayer::errorOccurred,
@@ -90,13 +92,18 @@ void Player::setVolume(int volume)
     m_audioOutput->setVolume(normalizedVolume);
 }
 
-void Player::setVideoOutput(QWidget* container)
-{
+void Player::setVideoOutput(QWidget* container) {
     if (container) {
         auto layout = new QVBoxLayout(container);
-        layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(m_videoWidget);
-        m_videoWidget->show();
+        m_videoRenderer->initialize(m_videoWidget->videoSink(), 640, 360); // Инициализируем
+    }
+}
+
+void Player::setMedia(const QUrl& url) {
+    if (url.isValid()) {
+        m_mediaPlayer->setSource(url);
+        m_videoRenderer->initialize(m_videoWidget->videoSink(), 640, 360);
     }
 }
 

@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{80938BE0-1E8B-4CAE-A9AD-BE6B0119FBD3}</ProjectGuid>
+    <ProjectGuid>{69BB53AC-4442-4215-B006-03432A8555BE}</ProjectGuid>
     <Keyword>QtVS_v304</Keyword>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">10.0</WindowsTargetPlatformVersion>
     <WindowsTargetPlatformVersion Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">10.0</WindowsTargetPlatformVersion>
@@ -36,13 +36,13 @@
     <Import Project="$(QtMsBuild)\qt_defaults.props" />
   </ImportGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="QtSettings">
-    <QtInstall>6.9.0_msvc2022_64</QtInstall>
-    <QtModules>concurrent;core;gui;multimedia;multimediawidgets;network;svg;websockets;widgets</QtModules>
+    <QtInstall>C:\Qt\6.9.0\msvc2022_64</QtInstall>
+    <QtModules>core;gui;network;widgets;concurrent;multimedia;multimediawidgets;svg;websockets</QtModules>
     <QtBuildConfig>debug</QtBuildConfig>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'" Label="QtSettings">
-    <QtInstall>6.9.0_msvc2022_64</QtInstall>
-    <QtModules>concurrent;core;gui;multimedia;multimediawidgets;network;svg;websockets;widgets</QtModules>
+    <QtInstall>C:\Qt\6.9.0\msvc2022_64</QtInstall>
+    <QtModules>core;gui;network;widgets;concurrent;multimedia;multimediawidgets;svg;websockets</QtModules>
     <QtBuildConfig>release</QtBuildConfig>
   </PropertyGroup>
   <Target Name="QtMsBuildNotFound" BeforeTargets="CustomBuild;ClCompile" Condition="!Exists('$(QtMsBuild)\qt.targets') or !Exists('$(QtMsBuild)\qt.props')">
@@ -63,6 +63,15 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
   </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\ffmpeg\include</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\ffmpeg\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>$(CoreLibraryDependencies);%(AdditionalDependencies);avcodec.lib;avformat.lib;avutil.lib;swscale.lib;swresample.lib</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'" Label="Configuration">
     <ClCompile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -92,18 +101,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="MainWindow.cpp" />
+    <ClCompile Include="NotificationManager.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="RoomData.cpp" />
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="SyncHandler.cpp" />
     <ClCompile Include="VideoRenderer.cpp" />
+    <QtRcc Include="app.qrc" />
+    <QtUic Include="app.ui" />
+    <QtMoc Include="app.h" />
+    <ClCompile Include="app.cpp" />
     <ClCompile Include="Client.cpp" />
-    <ClCompile Include="MainWindow.cpp" />
-    <ClCompile Include="NotificationManager.cpp" />
-    <ClCompile Include="Player.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="Client.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="films.txt" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="MainWindow.h" />

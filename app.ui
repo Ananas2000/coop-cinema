@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <UI version="4.0" >
- <class>QtAppClass</class>
- <widget class="QMainWindow" name="QtAppClass" >
+ <class>appClass</class>
+ <widget class="QMainWindow" name="appClass" >
   <property name="objectName" >
-   <string notr="true">QtAppClass</string>
+   <string notr="true">appClass</string>
   </property>
   <property name="geometry" >
    <rect>
@@ -14,7 +13,7 @@
    </rect>
   </property>
   <property name="windowTitle" >
-   <string>QtApp</string>
+   <string>app</string>
   </property>  <widget class="QMenuBar" name="menuBar" />
   <widget class="QToolBar" name="mainToolBar" />
   <widget class="QWidget" name="centralWidget" />
@@ -23,7 +22,7 @@
  <layoutDefault spacing="6" margin="11" />
  <pixmapfunction></pixmapfunction>
  <resources>
-   <include location="QtApp.qrc"/>
+   <include location="app.qrc"/>
  </resources>
  <connections/>
 </UI>

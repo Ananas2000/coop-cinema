@@ -48,11 +48,10 @@ void Client::disconnectFromServer()
     }
 }
 
-void Client::createRoom()
-{
-    sendMessage("1");
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
-    sendMessage("1");
+void Client::createRoom(int filmIndex) {
+    sendMessage("CREATE_ROOM");
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    sendMessage(QString::number(filmIndex));
 }
 
 void Client::joinRoom(const QString& roomId)
@@ -116,9 +115,13 @@ void Client::onTextMessageReceived(const QString& message)
         emit filmsListReceived(films);
     }
 
-    if (command == "ROOM_CREATED") {
-        if (!parts.isEmpty()) emit roomCreated(parts[0]);
+    else if (command == "ROOM_CREATED") {
+        if (!parts.isEmpty()) {
+            m_currentRoom = parts[0];
+            emit roomCreated(parts[0]);
+        }
     }
+
     else if (command == "PARTICIPANTS_UPDATE") {
         for (const QString& user : parts) {
             assignAvatar(user);
@@ -131,9 +134,6 @@ void Client::onTextMessageReceived(const QString& message)
 
         emit participantsUpdated(usersWithAvatars);
     }
-    else if (command == "VIDEO_URL") {
-        if (!parts.isEmpty()) emit videoUrlReceived(QUrl(parts[0]));
-    }
     else if (command == "CHAT_MESSAGE") {
         if (parts.size() >= 2) emit chatMessageReceived(parts[0], parts[1]);
     }
@@ -144,6 +144,13 @@ void Client::onTextMessageReceived(const QString& message)
         if (parts.size() >= 2) {
             m_userNickname = parts[0];
             m_userAvatar = parts[1];
+        }
+    }
+    else if (command == "VIDEO_URL") {
+        if (!parts.isEmpty()) {
+            QUrl url(parts[0]);
+
+            emit videoUrlReceived(url);
         }
     }
     else if (command == "ERROR") {

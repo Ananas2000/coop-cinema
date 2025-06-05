@@ -16,7 +16,7 @@ public:
     void connectToServer(const QString& host, quint16 port);
     void disconnectFromServer();
 
-    void createRoom();
+    void createRoom(int filmIndex);
     void joinRoom(const QString& roomId);
     void sendReaction(const QString& reaction);
     void sendMessage(const QString& message);

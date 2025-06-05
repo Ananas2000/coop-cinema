@@ -214,25 +214,20 @@ void MainWindow::setupConnections()
         m_client->sendMessage("GET_FILMS");
         });
 
-    connect(m_createRoomBtn, &QPushButton::clicked, [this]() {
-        QString numberText = m_filmNumberEdit->text().trimmed();
-        if (numberText.isEmpty()) {
-            showNotification("Please enter film number");
-            return;
-        }
+    /*connect(m_createRoomBtn, &QPushButton::clicked, this, [this]() {
+        m_client->sendMessage("1"); // Только команда создания
+        });*/
 
-        // Отправляем команду создания комнаты и номер фильма
-        m_client->sendMessage("1");
-        m_client->sendMessage(numberText);
-        });
+    /*connect(m_createRoomBtn, &QPushButton::clicked, this, [this]() {
+    int filmIndex = m_movieList->currentRow(); // Получаем выбранный фильм
+    m_client->createRoom(filmIndex + 1); // Индексация с 1 на сервере
+    });*/
 
     // Menu tab actions
     connect(m_createRoomBtn, &QPushButton::clicked, this, [this]() {
         if (m_client->currentRoom().isEmpty()) {
-            m_client->createRoom();
-        }
-        else {
-            showNotification("You are already in a room");
+            int filmIndex = m_filmNumberEdit->text().toInt();
+            m_client->createRoom(filmIndex);
         }
         });
 
@@ -371,9 +366,23 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
 {
     m_player->stop();
     m_player->setPlaybackRate(1.0);
-    //m_player->setMedia(url);
+    m_player->setMedia(url);
     m_player->play();
+
+    updatePlayerControls(true);
+    showNotification("Видео загружено: " + url.toString());
 }
+
+/*void MainWindow::handleVideoUrlReceived(const QUrl& url) {
+    // Проверяем тип URL
+    if(url.isLocalFile()) {
+        m_player->setMedia(url);
+    } else {
+        // Для сетевых источников используем QMediaContent
+        m_player->setMedia(QMediaContent(url));
+    }
+    m_player->play();
+}*/
 
 void MainWindow::updatePlayerControls(bool isPlaying)
 {

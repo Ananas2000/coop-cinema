@@ -6,6 +6,7 @@
 #include <QAudioOutput>
 #include <QVideoWidget>
 #include <QTimer>
+#include <QUrl>
 #include "VideoRenderer.h"
 #include "SyncHandler.h"
 
@@ -24,6 +25,7 @@ public:
     void setPlaybackRate(float rate);
     void setVolume(int volume);
     void setVideoOutput(QWidget* container);
+    void setMedia(const QUrl& url);
 
     bool isPlaying() const;
     qint64 currentPosition() const;

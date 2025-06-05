@@ -24,6 +24,7 @@ public:
     void enqueueFrame(const QVideoFrame& frame);
     void enqueueEncodedData(const QByteArray& data);
     void setPlaybackRate(float rate);
+    void setFrameDuration(qint64 durationMs); // Добавленный метод
     void seek(qint64 positionMs);
     bool isPlaying() const;
     qint64 currentPosition() const;
@@ -45,6 +46,9 @@ private:
     void adjustPresentationTime(QVideoFrame& frame);
     void dropLateFrames();
 
+    bool m_initialized = false;
+    void initializeFFmpeg();
+
     QVideoSink* m_videoSink = nullptr;
     QThread* m_processingThread = nullptr;
     QQueue<QVideoFrame> m_frameQueue;
@@ -57,6 +61,7 @@ private:
     float m_playbackRate = 1.0f;
     qint64 m_lastAudioPosition = 0;
     qint64 m_baseTimestamp = 0;
+    qint64 m_frameDuration = 40;
     int m_width = 0;
     int m_height = 0;
 };
