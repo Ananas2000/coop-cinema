@@ -50,39 +50,39 @@ class Server {
     std::mutex userRoomsMutex;
 
     void printHelp() {
-        std::cout << "Серверные команды:\n"
-            << "list   - Список комнат\n"
-            << "users  - Список пользователей\n"
-            << "help   - Показать помощь\n"
-            << "exit   - Завершить работу\n";
+        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n"
+            << "list   - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n"
+            << "users  - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n"
+            << "help   - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n"
+            << "exit   - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n";
     }
 
     void handleConsoleInput() {
         std::string command;
         while (isRunning) {
             system("cls");
-            std::cout << "=== УПРАВЛЕНИЕ СЕРВЕРОМ ===\n";
+            std::cout << "=== пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ===\n";
             printHelp();
 
-            std::cout << "\nВведите команду: ";
+            std::cout << "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: ";
             std::getline(std::cin, command);
 
             system("cls");
 
             if (command == "list") {
                 std::lock_guard<std::mutex> lock(roomsMutex);
-                std::cout << "Активные комнаты (" << rooms.size() << "):\n";
+                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (" << rooms.size() << "):\n";
                 for (const auto& [name, room] : rooms) {
-                    std::cout << "- " << name << " (" << room.users.size() << " участников)\n";
+                    std::cout << "- " << name << " (" << room.users.size() << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)\n";
                 }
             }
             else if (command == "users") {
                 std::lock_guard<std::mutex> lockUsers(usersMutex);
                 std::lock_guard<std::mutex> lockRooms(userRoomsMutex);
-                std::cout << "Подключенные пользователи (" << connectedUsers.size() << "):\n";
+                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (" << connectedUsers.size() << "):\n";
                 for (const auto& user : connectedUsers) {
                     auto it = userRooms.find(user);
-                    std::cout << "- " << user << (it != userRooms.end() ? " : Комната " + it->second : " : Не в комнате") << "\n";
+                    std::cout << "- " << user << (it != userRooms.end() ? " : пїЅпїЅпїЅпїЅпїЅпїЅпїЅ " + it->second : " : пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") << "\n";
                 }
             }
             else if (command == "help") {
@@ -90,12 +90,12 @@ class Server {
             }
             else if (command == "exit") {
                 isRunning = false;
-                std::cout << "Завершение работы сервера...\n";
+                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ...\n";
                 break;
             }
 
             if (command != "exit") {
-                std::cout << "\nНажмите Enter для продолжения...";
+                std::cout << "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Enter пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ...";
                 std::cin.ignore();
             }
         }
@@ -126,7 +126,7 @@ class Server {
         Room* currentRoom = nullptr;
 
         while (true) {
-            sendMessage(clientSocket, "Введите имя: ");
+            sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ: ");
             int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
             if (bytesReceived <= 0) {
                 closesocket(clientSocket);
@@ -140,15 +140,15 @@ class Server {
                 username = name;
                 break;
             }
-            sendMessage(clientSocket, "Имя занято! Попробуйте другое: ");
+            sendMessage(clientSocket, "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ! пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: ");
         }
 
-        std::cout << "Подключился: " << username << std::endl;
+        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " << username << std::endl;
 
         while (isRunning) {
             std::string menu = currentRoom ?
-                "\nМеню комнаты:\n1. Участники\n2. Инфо\n3. Выйти\n4. Выход\nВыбор: " :
-                "\nГлавное меню:\n1. Создать\n2. Присоединиться\n3. Список\n4. Выход\nВыбор: ";
+                "\nпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n2. пїЅпїЅпїЅпїЅ\n3. пїЅпїЅпїЅпїЅпїЅ\n4. пїЅпїЅпїЅпїЅпїЅ\nпїЅпїЅпїЅпїЅпїЅ: " :
+                "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ:\n1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n3. пїЅпїЅпїЅпїЅпїЅпїЅ\n4. пїЅпїЅпїЅпїЅпїЅ\nпїЅпїЅпїЅпїЅпїЅ: ";
 
             sendMessage(clientSocket, menu);
 
@@ -173,19 +173,19 @@ class Server {
                         userRooms[username] = roomName;
                     }
                     currentRoom = &rooms.at(roomName);
-                    sendMessage(clientSocket, "Создана комната: " + roomName + "\n");
-                    std::cout << "Пользователь " << username << " создал комнату " << roomName << std::endl;
+                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + roomName + "\n");
+                    std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << roomName << std::endl;
                 }
                 else {
                     auto members = currentRoom->getUsers();
-                    std::string msg = "Участники:\n";
+                    std::string msg = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n";
                     for (const auto& m : members) msg += m + "\n";
                     sendMessage(clientSocket, msg);
                 }
             }
             else if (command == "2") {
                 if (!currentRoom) {
-                    sendMessage(clientSocket, "Введите имя комнаты: ");
+                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: ");
                     bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
                     if (bytesReceived <= 0) break;
 
@@ -198,24 +198,24 @@ class Server {
                             std::lock_guard<std::mutex> lockUR(userRoomsMutex);
                             userRooms[username] = roomName;
                         }
-                        sendMessage(clientSocket, "Присоединились к: " + roomName + "\n");
-                        std::cout << "Пользователь " << username << " присоединился к " << roomName << std::endl;
+                        sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ: " + roomName + "\n");
+                        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ " << roomName << std::endl;
                     }
                     else {
-                        sendMessage(clientSocket, "Ошибка подключения!\n");
+                        sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
                     }
                 }
                 else {
-                    sendMessage(clientSocket, "Комната: " + currentRoom->name + "\n");
+                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + currentRoom->name + "\n");
                 }
             }
             else if (command == "3") {
                 if (!currentRoom) {
                     std::lock_guard<std::mutex> lock(roomsMutex);
-                    std::string list = "Доступные комнаты:\n";
+                    std::string list = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n";
                     for (const auto& pair : rooms)
                         list += "- " + pair.first + " (" + std::to_string(pair.second.users.size()) + ")\n";
-                    sendMessage(clientSocket, list.empty() ? "Нет активных комнат\n" : list);
+                    sendMessage(clientSocket, list.empty() ? "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n" : list);
                 }
                 else {
                     currentRoom->removeUser(username);
@@ -223,16 +223,16 @@ class Server {
                         std::lock_guard<std::mutex> lockUR(userRoomsMutex);
                         userRooms.erase(username);
                     }
-                    sendMessage(clientSocket, "Вышли из: " + currentRoom->name + "\n");
+                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ: " + currentRoom->name + "\n");
                     currentRoom = nullptr;
-                    std::cout << "Пользователь " << username << " покинул комнату\n";
+                    std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n";
                 }
             }
             else if (command == "4") {
-                sendMessage(clientSocket, "До свидания!\n");
+                sendMessage(clientSocket, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
                 break;
             }
-            else sendMessage(clientSocket, "Неизвестная команда!\n");
+            else sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
         }
 
         if (currentRoom) {
@@ -245,17 +245,17 @@ class Server {
             connectedUsers.erase(username);
         }
         closesocket(clientSocket);
-        std::cout << "Отключился: " << username << std::endl;
+        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " << username << std::endl;
     }
 
 public:
     Server() {
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-            throw std::runtime_error("Ошибка инициализации Winsock");
+            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Winsock");
 
         serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (serverSocket == INVALID_SOCKET)
-            throw std::runtime_error("Ошибка создания сокета");
+            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ");
 
         sockaddr_in serverAddr{};
         serverAddr.sin_family = AF_INET;
@@ -263,11 +263,11 @@ public:
         serverAddr.sin_port = htons(8888);
 
         if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-            throw std::runtime_error("Ошибка привязки");
+            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
 
         listen(serverSocket, SOMAXCONN);
         isRunning = true;
-        std::cout << "Сервер запущен на порту 8888\n";
+        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 8888\n";
     }
 
     void start() {
@@ -284,19 +284,23 @@ public:
         isRunning = false;
         closesocket(serverSocket);
         WSACleanup();
-        std::cout << "Сервер остановлен\n";
+        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n";
     }
 };
 
 int main() {
     setlocale(LC_ALL, "Russian");
+
+    
     try {
         Server server;
         server.start();
     }
     catch (const std::exception& e) {
-        std::cerr << "ОШИБКА: " << e.what() << std::endl;
+        std::cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ: " << e.what() << std::endl;
         return 1;
     }
+
+
     return 0;
 }
