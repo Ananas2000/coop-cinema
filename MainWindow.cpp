@@ -1,8 +1,5 @@
 ﻿#include "MainWindow.h"
-#include "Client.h"
-#include "Player.h"
-#include "NotificationManager.h"
-
+#include "RoomModel.h"
 #include <QVideoWidget>
 #include <QListWidget>
 #include <QPushButton>
@@ -27,24 +24,9 @@ MainWindow::MainWindow(QWidget* parent)
     m_client(new Client(this)),
     m_player(new Player(this)),
     m_notificationManager(new NotificationManager(this)),
-    m_tabWidget(nullptr),
-    m_menuTab(nullptr),
-    m_createRoomBtn(nullptr),
-    m_movieList(nullptr),
-    m_roomIdEdit(nullptr),
-    m_joinRoomBtn(nullptr),
-    m_roomTab(nullptr),
-    m_centralWidget(nullptr),
-    m_mainSplitter(nullptr),
-    m_videoContainer(nullptr),
-    m_sidebar(nullptr),
-    m_participantsList(nullptr),
-    m_chatReactions(nullptr),
-    m_playPauseBtn(nullptr),
-    m_volumeSlider(nullptr),
-    m_speedCombo(nullptr),
-    m_positionLabel(nullptr),
-    m_statusLabel(nullptr),
+    m_filmManager(new FilmManager(this)),
+    m_reactionManager(new ReactionManager(this)),
+    m_currentRoom(new RoomModel()),
     m_playIcon(QIcon::fromTheme("media-playback-start")),
     m_pauseIcon(QIcon::fromTheme("media-playback-pause"))
 {
@@ -53,12 +35,9 @@ MainWindow::MainWindow(QWidget* parent)
     applyStyleSheet();
 
     m_roomIdLabel->installEventFilter(this);
-
     m_client->connectToServer("localhost", 8888);
 
-    QTimer::singleShot(100, this, [this]() {
-        showMaximized();
-        });
+    QTimer::singleShot(100, this, [this]() { showMaximized(); });
 }
 
 MainWindow::~MainWindow() {}
@@ -534,16 +513,8 @@ void MainWindow::handleReaction(const QString& reaction) {
 
 void MainWindow::onReactionReceived(const QString& user, const QString& reaction)
 {
-    QString avatarPath = m_client->getAvatarPath(user);
-
-    QListWidgetItem* item = new QListWidgetItem(
-        QIcon(avatarPath),
-        QString("%1 - %2").arg(reaction, user)
-    );
-
-    item->setSizeHint(QSize(-1, 50));
-    m_chatReactions->addItem(item);
-    m_chatReactions->scrollToBottom();
+    m_reactionManager->addReaction(user, reaction);
+    updateReactionsList();
 
     m_notificationManager->showNotification(
         QString("%1: %2").arg(user, reaction),
@@ -593,14 +564,6 @@ void MainWindow::handleSpeedChange(const QString& speed)
     }
 }
 
-void MainWindow::sendReaction()
-{
-    auto selected = m_chatReactions->currentItem();
-    if (!selected) return;
-
-    m_client->sendReaction(selected->text());
-}
-
 void MainWindow::updatePositionDisplay(qint64 position)
 {
     int seconds = static_cast<int>(position / 1000);
@@ -611,17 +574,13 @@ void MainWindow::updatePositionDisplay(qint64 position)
 
 void MainWindow::onFilmsListReceived(const QStringList& films)
 {
-    QFile file("films.txt");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        for (const QString& film : films) {
-            out << film << "\n";
-        }
-        file.close();
+    m_filmManager->loadFilms(films);
+    m_movieList->clear();
+
+    for (const Film& film : m_filmManager->films()) {
+        m_movieList->addItem(film.displayText());
     }
 
-    m_movieList->clear();
-    m_movieList->addItems(films);
     m_searchEdit->clear();
 }
 
@@ -631,27 +590,31 @@ void MainWindow::onRoomJoined(const QString& roomId)
     m_roomIdEdit->clear();
 }
 
-void MainWindow::onParticipantsUpdated(const QStringList& users) {
-    m_participantsList->clear();
-    const int iconSize = 64;
-    m_participantsList->setIconSize(QSize(iconSize, iconSize));
+void MainWindow::onParticipantsUpdated(const QStringList& users)
+{
+    m_currentRoom->clearParticipants();
 
     for (const QString& user : users) {
         QStringList parts = user.split('|');
         if (parts.size() < 2) continue;
 
-        QString nickname = parts[0];
-        QString avatarPath = parts[1];
+        bool isYou = (parts[0] == m_client->userNickname());
+        m_currentRoom->addParticipant(Participant(parts[0], parts[1], isYou));
+    }
 
-        QString displayName = nickname;
-        if (nickname == m_client->userNickname()) {
-            displayName += " (you)";
-        }
+    updateParticipantsList();
+}
 
-        QListWidgetItem* item = new QListWidgetItem;
-        item->setText(displayName);
+void MainWindow::updateParticipantsList()
+{
+    m_participantsList->clear();
+    const int iconSize = 64;
+    m_participantsList->setIconSize(QSize(iconSize, iconSize));
 
-        QPixmap pixmap(avatarPath);
+    for (const Participant& p : m_currentRoom->participants()) {
+        QListWidgetItem* item = new QListWidgetItem(p.displayName());
+
+        QPixmap pixmap(p.avatarPath());
         if (pixmap.isNull()) {
             pixmap.load(":/images/default_avatar.png");
         }
@@ -664,6 +627,25 @@ void MainWindow::onParticipantsUpdated(const QStringList& users) {
 
         m_participantsList->addItem(item);
     }
+}
+
+void MainWindow::updateReactionsList()
+{
+    m_chatReactions->clear();
+
+    for (const Reaction& reaction : m_reactionManager->reactions()) {
+        QString avatarPath = m_client->getAvatarPath(reaction.user());
+
+        QListWidgetItem* item = new QListWidgetItem(
+            QIcon(avatarPath),
+            reaction.displayText()
+        );
+
+        item->setSizeHint(QSize(-1, 50));
+        m_chatReactions->addItem(item);
+    }
+
+    m_chatReactions->scrollToBottom();
 }
 
 void MainWindow::showNotification(const QString& message)

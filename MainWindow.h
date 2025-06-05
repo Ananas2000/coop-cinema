@@ -7,6 +7,9 @@
 #include "Client.h"
 #include "Player.h"
 #include "NotificationManager.h"
+#include "FilmManager.h"
+#include "ReactionManager.h"
+#include "RoomModel.h"
 
 QT_BEGIN_NAMESPACE
 class QVideoWidget;
@@ -32,7 +35,6 @@ private slots:
     void handlePlayPause();
     void handleVolumeChange(int volume);
     void handleSpeedChange(const QString& speed);
-    void sendReaction();
     void updatePositionDisplay(qint64 position);
     void onPlayerStateReceived(const QString& roomId, const QString& senderNick, bool isPaused, qint64 position);
     void onRoomJoined(const QString& roomId);
@@ -52,6 +54,8 @@ private:
     void createUI();
     void setupConnections();
     void applyStyleSheet();
+    void updateParticipantsList();
+    void updateReactionsList();
 
     bool m_syncing = false;
     qint64 m_lastPlayerStateSendTime = 0;
@@ -59,6 +63,9 @@ private:
     Client* m_client;
     Player* m_player;
     NotificationManager* m_notificationManager;
+    FilmManager* m_filmManager;
+    ReactionManager* m_reactionManager;
+    RoomModel* m_currentRoom;
 
     QTabWidget* m_tabWidget;
     QPushButton* m_getFilmsBtn;

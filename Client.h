@@ -6,6 +6,8 @@
 #include <QUrl>
 #include <QStringList>
 #include <QMap>
+#include "Participant.h"
+#include "RoomModel.h"
 
 class Client : public QObject
 {
@@ -53,4 +55,5 @@ private:
     int m_avatarIndex = 0;
     QMap<QString, QString> m_userAvatars;
 };
+
 #endif

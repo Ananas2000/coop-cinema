@@ -101,14 +101,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Film.cpp" />
+    <ClCompile Include="FilmManager.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="NotificationManager.cpp" />
+    <ClCompile Include="Participant.cpp" />
     <ClCompile Include="Player.cpp">
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).moc</QtMocFileName>
       <DynamicSource Condition="'$(Configuration)|$(Platform)'=='Release|x64'">input</DynamicSource>
       <QtMocFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).moc</QtMocFileName>
     </ClCompile>
+    <ClCompile Include="Reaction.cpp" />
+    <ClCompile Include="ReactionManager.cpp" />
+    <ClCompile Include="RoomModel.cpp" />
     <ClCompile Include="RoomData.cpp" />
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="Client.cpp" />
@@ -134,6 +140,14 @@
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="SettingsManager.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Film.h" />
+    <QtMoc Include="FilmManager.h" />
+    <ClInclude Include="Participant.h" />
+    <ClInclude Include="Reaction.h" />
+    <QtMoc Include="ReactionManager.h" />
+    <ClInclude Include="RoomModel.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">
