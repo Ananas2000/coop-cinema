@@ -1,0 +1,34 @@
+{
+    "films": [
+        {
+            "title": "Django Unchained",
+            "director": "Tarantino",
+            "path": "/films/django.mp4"
+        },
+        {
+            "title": "Pulp Fiction",
+            "director": "Tarantino",
+            "path": "/films/pulp.mp4"
+        },
+        {
+            "title": "Pidoras",
+            "director": "gandon",
+            "path": "/films/pulp.mp4"
+        },
+        {
+            "title": "Pidwereworas",
+            "director": "gandwerweron",
+            "path": "/films/pulp.mp4"
+        },
+        {
+            "title": "rtyrtuyhfjgh",
+            "director": "gavbnvbvbnvfghbnndon",
+            "path": "/films/pulp.mp4"
+        },
+        {
+            "title": "rtyytutyu",
+            "director": "gbnvbnvbn",
+            "path": "/films/pulp.mp4"
+        }
+    ]
+}
