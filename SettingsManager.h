@@ -9,6 +9,9 @@ class SettingsManager : public QObject
 {
     Q_OBJECT
 public:
+    SettingsManager(const SettingsManager&) = delete;
+    SettingsManager& operator=(const SettingsManager&) = delete;
+
     static SettingsManager& instance() {
         static SettingsManager instance;
         return instance;
@@ -56,9 +59,6 @@ public slots:
 private:
     explicit SettingsManager(QObject* parent = nullptr);
     ~SettingsManager() = default;
-
-    SettingsManager(const SettingsManager&) = delete;
-    SettingsManager& operator=(const SettingsManager&) = delete;
 
     QSettings m_settings;
     QString m_currentProfile = "default";

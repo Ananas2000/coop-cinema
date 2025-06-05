@@ -40,7 +40,9 @@ private slots:
     void onRoomJoined(const QString& roomId);
     void onParticipantsUpdated(const QStringList& users);
     void onFilmsListReceived(const QStringList& films);
-    void showNotification(const QString& message);
+    void updateNotification(const QString& message,
+        NotificationManager::NotificationType type = NotificationManager::Info,
+        int durationMs = 3000);
     void handleVideoUrlReceived(const QUrl& url);
     void filterMovies(const QString& text);
     void onMovieDoubleClicked(QListWidgetItem* item);

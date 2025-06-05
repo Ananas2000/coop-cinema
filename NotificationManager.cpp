@@ -1,6 +1,7 @@
 #include "NotificationManager.h"
 #include <QVBoxLayout>
 #include <QGraphicsOpacityEffect>
+#include <algorithm>
 
 NotificationManager::NotificationManager(QWidget* parentWidget, QObject* parent)
     : QObject(parent),
@@ -18,6 +19,24 @@ NotificationManager::NotificationManager(QWidget* parentWidget, QObject* parent)
             processNextNotification();
         }
         });
+}
+
+NotificationManager::~NotificationManager() {
+    delete m_notificationLabel;
+    delete m_animation;
+}
+
+void NotificationManager::update(const QString& message, int type, int durationMs) {
+    if (!m_enabled)
+        return;
+
+    NotificationType notifType = static_cast<NotificationType>(type);
+    Notification notif{ message, notifType, durationMs > 0 ? durationMs : m_defaultDuration };
+    m_notificationQueue.enqueue(notif);
+
+    if (!m_isShowing) {
+        processNextNotification();
+    }
 }
 
 void NotificationManager::setupUI()
@@ -40,19 +59,6 @@ void NotificationManager::setupUI()
 
     if (m_parentWidget)
         m_notificationLabel->setParent(m_parentWidget);
-}
-
-void NotificationManager::showNotification(const QString& message, NotificationType type, int durationMs)
-{
-    if (!m_enabled)
-        return;
-
-    Notification notif{ message, type, durationMs > 0 ? durationMs : m_defaultDuration };
-    m_notificationQueue.enqueue(notif);
-
-    if (!m_isShowing) {
-        processNextNotification();
-    }
 }
 
 void NotificationManager::processNextNotification()
@@ -111,7 +117,7 @@ void NotificationManager::applyStyle(NotificationType type)
             "font-size: 24px; background-color: #19be6b; color: white; "
             "border-radius: 6px; padding: 20px;"
         );
-        break;
+        return;
     }
 
     m_notificationLabel->setStyleSheet(QString(

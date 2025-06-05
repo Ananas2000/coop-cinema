@@ -267,23 +267,27 @@ void MainWindow::setupConnections()
         });
 
     connect(m_player, &Player::playbackStateChanged, this, &MainWindow::updatePlayerControls);
-    connect(m_player, &Player::errorOccurred, this, &MainWindow::showNotification);
+    connect(m_player, &Player::errorOccurred, this, [this](const QString& error) {
+        updateNotification(error, NotificationManager::Error);
+        });
 
     connect(m_client, &Client::connected, [this]() {
         updateConnectionStatus(true);
-        showNotification("Connected to server");
+        updateNotification("Connected to server");
         });
 
     connect(m_client, &Client::disconnected, [this]() {
         updateConnectionStatus(false);
-        showNotification("Disconnected from server");
+        updateNotification("Disconnected from server");
         m_tabWidget->setCurrentIndex(0);
         });
 
     connect(m_client, &Client::roomCreated, this, &MainWindow::onRoomJoined);
     connect(m_client, &Client::participantsUpdated, this, &MainWindow::onParticipantsUpdated);
     connect(m_client, &Client::videoUrlReceived, this, &MainWindow::handleVideoUrlReceived);
-    connect(m_client, &Client::errorOccurred, this, &MainWindow::showNotification);
+    connect(m_client, &Client::errorOccurred, this, [this](const QString& error) {
+        updateNotification(error, NotificationManager::Error);
+        });
     connect(m_client, &Client::reactionReceived,
         this, &MainWindow::onReactionReceived);
     connect(m_client, &Client::filmsListReceived, this, &MainWindow::onFilmsListReceived);
@@ -308,7 +312,7 @@ void MainWindow::setupConnections()
     connect(m_roomIdLabel, &QLabel::linkActivated, this, [this](const QString&) {
         QClipboard* clipboard = QApplication::clipboard();
         clipboard->setText(m_roomIdLabel->text());
-        showNotification("Room ID copied to clipboard");
+        updateNotification("Room ID copied to clipboard");
         });
 
     connect(m_searchEdit, &QLineEdit::textChanged,
@@ -324,7 +328,7 @@ void MainWindow::setupConnections()
     connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
         QString roomId = m_roomIdEdit->text().trimmed();
         if (roomId.isEmpty() || roomId == " ") {
-            showNotification("Please enter room ID");
+            updateNotification("Please enter room ID");
             return;
         }
 
@@ -333,7 +337,7 @@ void MainWindow::setupConnections()
             m_client->joinRoom(roomId);
         }
         else {
-            showNotification("You are already in this room");
+            updateNotification("You are already in this room");
         }
         });
 
@@ -516,7 +520,7 @@ void MainWindow::onReactionReceived(const QString& user, const QString& reaction
     m_reactionManager->addReaction(user, reaction);
     updateReactionsList();
 
-    m_notificationManager->showNotification(
+    updateNotification(
         QString("%1: %2").arg(user, reaction),
         NotificationManager::Reaction,
         2000
@@ -539,7 +543,7 @@ void MainWindow::copyRoomId()
 {
     QClipboard* clipboard = QApplication::clipboard();
     clipboard->setText(m_roomIdLabel->text());
-    showNotification("Room ID copied to clipboard");
+    updateNotification("Room ID copied to clipboard");
 }
 
 void MainWindow::onMovieDoubleClicked(QListWidgetItem* item)
@@ -586,7 +590,7 @@ void MainWindow::onFilmsListReceived(const QStringList& films)
 
 void MainWindow::onRoomJoined(const QString& roomId)
 {
-    showNotification("Joined room: " + roomId);
+    updateNotification("Joined room: " + roomId);
     m_roomIdEdit->clear();
 }
 
@@ -648,11 +652,14 @@ void MainWindow::updateReactionsList()
     m_chatReactions->scrollToBottom();
 }
 
-void MainWindow::showNotification(const QString& message)
+void MainWindow::updateNotification(const QString& message,
+    NotificationManager::NotificationType type,
+    int durationMs)
 {
-    m_notificationManager->showNotification(message);
+    m_notificationManager->update(message,
+        static_cast<int>(type),
+        durationMs);
 }
-
 void MainWindow::handleVideoUrlReceived(const QUrl& url)
 {
     m_player->stop();
@@ -660,7 +667,7 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
     m_player->setMedia(url);
     m_player->pause();
     updatePlayerControls(true);
-    showNotification("Видео загружено: " + url.toString());
+    updateNotification("Видео загружено: " + url.toString());
 }
 
 void MainWindow::onPlayerStateReceived(const QString& roomId,
