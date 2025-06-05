@@ -43,7 +43,7 @@ public:
     queue<string> availableNicks;
     mutable mutex roomMutex;
 
-    Room(string name, const Film & film, SOCKET creatorSocket)
+    Room(string name, const Film& film, SOCKET creatorSocket)
         : name(move(name)), filmTitle(film.title),
         filmDirector(film.director), filmPath(film.path),
         creator(creatorSocket)
@@ -114,7 +114,7 @@ class Server {
     void loadFilms() {
         ifstream filmsFile("films.json");
         if (!filmsFile.is_open()) {
-            throw runtime_error("Не удалось открыть films.json");
+            throw runtime_error("Не удалось открыть файл films.json");
         }
 
         Json::Value root;
@@ -139,18 +139,18 @@ class Server {
     }
 
     void printHelp() {
-        cout << "Серверные команды:\n"
-            << "list   - Список комнат\n"
-            << "users  - Список пользователей\n"
-            << "help   - Показать помощь\n"
-            << "exit   - Завершить работу\n";
+        cout << "Доступные команды:\n"
+            << "list   - список комнат\n"
+            << "users  - список подключенных\n"
+            << "help   - показать помощь\n"
+            << "exit   - остановить сервер\n";
     }
 
     void handleConsoleInput() {
         string command;
         while (isRunning) {
             system("cls");
-            cout << "=== СЕРВЕР КИНОТЕАТРА ===\n";
+            cout << "=== Сервер работает ===\n";
             printHelp();
 
             cout << "\nВведите команду: ";
@@ -168,7 +168,7 @@ class Server {
             }
             else if (command == "users") {
                 lock_guard<mutex> lock(clientsMutex);
-                cout << "Подключенные пользователи (" << connectedClients.size() << "):\n";
+                cout << "Подключенные клиенты (" << connectedClients.size() << "):\n";
 
                 lock_guard<mutex> roomLock(roomsMutex);
                 for (const auto& [socket, ip] : connectedClients) {
@@ -184,7 +184,7 @@ class Server {
                         }
                     }
                     else {
-                        cout << "- " << ip << " : Не в комнате\n";
+                        cout << "- " << ip << " : не в комнате\n";
                     }
                 }
             }
@@ -193,7 +193,7 @@ class Server {
             }
             else if (command == "exit") {
                 isRunning = false;
-                cout << "Завершение работы сервера...\n";
+                cout << "Остановка сервера...\n";
                 closesocket(serverSocket);
                 break;
             }
@@ -229,7 +229,7 @@ class Server {
         {
             lock_guard<mutex> lock(room.roomMutex);
             for (const auto& user : room.users) {
-                nicks.push_back(user.second.second); // Собираем ники
+                nicks.push_back(user.second.second); // получаем ник
             }
         }
 
@@ -271,7 +271,7 @@ class Server {
             command.erase(std::remove(command.begin(), command.end(), '\n'), command.end());
             command.erase(std::remove(command.begin(), command.end(), '\r'), command.end());
 
-            // Разбиваем команду на части
+            // Разделяем команду на части
             std::vector<std::string> parts;
             size_t start = 0;
             size_t end = command.find('|');
@@ -289,7 +289,7 @@ class Server {
             if (cmd == "PLAYER_STATE") {
                 if (parts.size() < 4) continue;
 
-                string roomId = parts[1]; // Индекс 1 вместо 0
+                string roomId = parts[1]; // индекс 1 потому что 0
                 string isPausedStr = parts[2];
                 string positionStr = parts[3];
 
@@ -298,7 +298,7 @@ class Server {
                         clientNick + "|" + isPausedStr + "|" +
                         positionStr + "\n";
 
-                    // Рассылаем ВСЕМ участникам комнаты включая отправителя
+                    // Отправляем всем участникам комнаты кроме отправителя
                     for (const auto& user : currentRoom->users) {
                         sendMessage(user.first, msg);
                     }
@@ -306,14 +306,6 @@ class Server {
             }
             else if (currentState == ClientState::MainMenu) {
                 if (command == "CREATE_ROOM") {
-                    /*
-                    // Отправляем список фильмов
-                    string filmsList = "FILMS_LIST";
-                    for (const auto& film : films) {
-                        filmsList += "|" + film.title + "|" + film.director;
-                    }
-                    sendMessage(clientSocket, filmsList + "\n");
-                    */
                     int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
                     if (bytesReceived <= 0) break;
                     int filmIndex = std::stoi(string(buffer, bytesReceived));
@@ -324,7 +316,7 @@ class Server {
                         auto it = rooms.emplace(
                             piecewise_construct,
                             forward_as_tuple(roomName),
-                            forward_as_tuple(roomName, films[filmIndex - 1], clientSocket) 
+                            forward_as_tuple(roomName, films[filmIndex - 1], clientSocket)
                         );
 
                         if (it.second) {
@@ -339,6 +331,7 @@ class Server {
                                 string videoUrl = "VIDEO_URL|http://localhost:8000/" + films[filmIndex - 1].path + "\n";
                                 sendMessage(clientSocket, "ROOM_CREATED|" + roomName + "\n");
                                 sendMessage(clientSocket, videoUrl);
+                                sendMessage(clientSocket, "TEMPORARY_PROFILE|" + nick + "\n");
                                 broadcastParticipantsUpdate(newRoom);
                                 cout << clientIP << " создал комнату " << roomName
                                     << " с фильмом " << films[filmIndex - 1].title
@@ -376,12 +369,14 @@ class Server {
                             clientNick = nick;
                             currentRoom = &it->second;
                             socketToRoom[clientSocket] = roomName;
-                            
+
                             string roomJoinedMsg = "ROOM_ENTERED|" + roomName + "\n";
                             sendMessage(clientSocket, roomJoinedMsg);
 
                             string videoUrl = "VIDEO_URL|http://localhost:8000/" + it->second.filmPath + "\n";
                             sendMessage(clientSocket, videoUrl);
+
+                            sendMessage(clientSocket, "TEMPORARY_PROFILE|" + nick + "\n");
 
                             broadcastParticipantsUpdate(*currentRoom);
                             cout << clientIP << " присоединился к " << roomName
@@ -389,7 +384,7 @@ class Server {
                             currentState = ClientState::InRoom;
                         }
                         else {
-                            sendMessage(clientSocket, "Комната заполнена!\n");
+                            sendMessage(clientSocket, "Комната переполнена!\n");
                         }
                     }
                     else {
@@ -410,7 +405,7 @@ class Server {
 
                     ifstream videoFile(videoPath, ios::binary);
                     if (!videoFile.is_open()) {
-                        sendMessage(clientSocket, "Ошибка: Видео не найдено\n");
+                        sendMessage(clientSocket, "Ошибка: файл не найден\n");
                         continue;
                     }
 
@@ -429,6 +424,21 @@ class Server {
                     videoFile.close();
                 }
             }
+            else if (cmd == "REACTION") {
+                if (parts.size() < 3) continue;
+
+                // Исправлено: правильные индексы
+                string roomId = parts[1];
+                string reaction = parts[2];
+
+                if (currentRoom && currentRoom->name == roomId) {
+                    // Рассылаем реакцию всем участникам комнаты
+                    string msg = "REACTION|" + clientNick + "|" + reaction + "\n";
+                    for (const auto& user : currentRoom->users) {
+                        sendMessage(user.first, msg);
+                    }
+                }
+            }
             else if (currentState == ClientState::InRoom) {
                 if (command == "LEAVE_ROOM") {
                     string roomName = currentRoom->name;
@@ -437,10 +447,10 @@ class Server {
                         socketToRoom.erase(clientSocket);
                         clientNick.clear();
 
-                        // Сообщение в консоль о ручном выходе
-                        cout << "[" << clientIP << "] Покинул комнату: " << roomName << endl;
+                        // Сообщение в консоль о выходе из комнаты
+                        cout << "[" << clientIP << "] покинул комнату: " << roomName << endl;
 
-                        // Отправка подтверждения клиенту
+                        // Отправляем подтверждение клиенту
                         sendMessage(clientSocket, "LEFT_ROOM|" + roomName + "\n");
 
                         if (!nowEmpty) {
@@ -449,7 +459,7 @@ class Server {
 
                         if (nowEmpty) {
                             rooms.erase(roomName);
-                            cout << "Комната удалена (пуста): " << roomName << endl;
+                            cout << "Комната удалена (пустая): " << roomName << endl;
                         }
                     }
                     currentRoom = nullptr;
@@ -464,8 +474,8 @@ class Server {
             if (removed) {
                 socketToRoom.erase(clientSocket);
 
-                // Выводим сообщение о разрыве соединения
-                cout << "[" << clientIP << "] Разрыв соединения. Покинул комнату: " << roomName << endl;
+                // Сообщение в консоль о разрыве соединения
+                cout << "[" << clientIP << "] разрыв соединения. Покинул комнату: " << roomName << endl;
 
                 if (!nowEmpty) {
                     // Обновляем список участников для оставшихся пользователей
@@ -475,12 +485,12 @@ class Server {
                     // Удаляем пустую комнату
                     lock_guard<mutex> lock(roomsMutex);
                     rooms.erase(roomName);
-                    cout << "Комната удалена (пуста): " << roomName << endl;
+                    cout << "Комната удалена (пустая): " << roomName << endl;
                 }
             }
         }
         else {
-            // Если пользователь не был в комнате
+            // Если клиент не был в комнате
             cout << "Отключился: " << clientIP << endl;
         }
 
@@ -542,7 +552,7 @@ int main() {
         server.start();
     }
     catch (const exception& e) {
-        cerr << "ОШИБКА: " << e.what() << endl;
+        cerr << "Ошибка: " << e.what() << endl;
         return 1;
     }
     return 0;
