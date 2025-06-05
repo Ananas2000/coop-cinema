@@ -57,7 +57,7 @@ void Client::createRoom(int filmIndex) {
 void Client::joinRoom(const QString& roomId)
 {
     m_currentRoom = roomId;
-    sendMessage("2"); // Команда присоединения
+    sendMessage("JOIN_ROOM"); // Команда присоединения
     sendMessage(roomId); // Отправка ID комнаты
 }
 
@@ -156,6 +156,12 @@ void Client::onTextMessageReceived(const QString& message)
     else if (command == "ERROR") {
         emit errorOccurred(parts.join("|"));
     }
+    else if (command == "ROOM_ENTERED") {
+        if (!parts.isEmpty()) {
+            m_currentRoom = parts[0];
+            emit roomCreated(parts[0]); // Используем тот же сигнал, что и при создании комнаты
+        }
+    }
 }
 
 void Client::onErrorOccurred(QAbstractSocket::SocketError error)
@@ -183,7 +189,8 @@ void Client::assignAvatar(const QString& userNickname)
         return;
     }
 
-    QString avatar = m_avatars[m_avatarIndex % m_avatars.size()];
+    // Используем относительные пути вместо абсолютных
+    QString avatar = QString("avatars/%0.png").arg(m_avatarIndex % 10);
     m_userAvatars[userNickname] = avatar;
     m_avatarIndex++;
 

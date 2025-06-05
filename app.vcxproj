@@ -108,10 +108,6 @@
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="SyncHandler.cpp" />
     <ClCompile Include="VideoRenderer.cpp" />
-    <QtRcc Include="app.qrc" />
-    <QtUic Include="app.ui" />
-    <QtMoc Include="app.h" />
-    <ClCompile Include="app.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>

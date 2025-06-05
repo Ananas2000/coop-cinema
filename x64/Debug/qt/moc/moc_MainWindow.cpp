@@ -53,6 +53,8 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         "roomId",
         "onParticipantsUpdated",
         "users",
+        "onFilmsListReceived",
+        "films",
         "showNotification",
         "message",
         "handleVideoUrlReceived",
@@ -88,21 +90,25 @@ template <> constexpr inline auto MainWindow::qt_create_metaobjectdata<qt_meta_t
         QtMocHelpers::SlotData<void(const QStringList &)>(12, 2, QMC::AccessPrivate, QMetaType::Void, {{
             { QMetaType::QStringList, 13 },
         }}),
+        // Slot 'onFilmsListReceived'
+        QtMocHelpers::SlotData<void(const QStringList &)>(14, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QStringList, 15 },
+        }}),
         // Slot 'showNotification'
-        QtMocHelpers::SlotData<void(const QString &)>(14, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QString, 15 },
+        QtMocHelpers::SlotData<void(const QString &)>(16, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QString, 17 },
         }}),
         // Slot 'handleVideoUrlReceived'
-        QtMocHelpers::SlotData<void(const QUrl &)>(16, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QUrl, 17 },
+        QtMocHelpers::SlotData<void(const QUrl &)>(18, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::QUrl, 19 },
         }}),
         // Slot 'updatePlayerControls'
-        QtMocHelpers::SlotData<void(bool)>(18, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::Bool, 19 },
-        }}),
-        // Slot 'updateConnectionStatus'
         QtMocHelpers::SlotData<void(bool)>(20, 2, QMC::AccessPrivate, QMetaType::Void, {{
             { QMetaType::Bool, 21 },
+        }}),
+        // Slot 'updateConnectionStatus'
+        QtMocHelpers::SlotData<void(bool)>(22, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { QMetaType::Bool, 23 },
         }}),
     };
     QtMocHelpers::UintData qt_properties {
@@ -134,10 +140,11 @@ void MainWindow::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, 
         case 4: _t->updatePositionDisplay((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
         case 5: _t->onRoomJoined((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 6: _t->onParticipantsUpdated((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
-        case 7: _t->showNotification((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 8: _t->handleVideoUrlReceived((*reinterpret_cast< std::add_pointer_t<QUrl>>(_a[1]))); break;
-        case 9: _t->updatePlayerControls((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
-        case 10: _t->updateConnectionStatus((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
+        case 7: _t->onFilmsListReceived((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
+        case 8: _t->showNotification((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
+        case 9: _t->handleVideoUrlReceived((*reinterpret_cast< std::add_pointer_t<QUrl>>(_a[1]))); break;
+        case 10: _t->updatePlayerControls((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
+        case 11: _t->updateConnectionStatus((*reinterpret_cast< std::add_pointer_t<bool>>(_a[1]))); break;
         default: ;
         }
     }
@@ -162,14 +169,14 @@ int MainWindow::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 11)
+        if (_id < 12)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 11;
+        _id -= 12;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 11)
+        if (_id < 12)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 11;
+        _id -= 12;
     }
     return _id;
 }

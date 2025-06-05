@@ -116,6 +116,18 @@ void MainWindow::createUI()
     m_roomTab = new QWidget(this);
     auto roomLayout = new QVBoxLayout(m_roomTab);
 
+    // Добавляем панель с идентификатором комнаты [ВЫСШИЙ ПРИОРИТЕТ]
+    auto roomIdPanel = new QWidget(m_roomTab);
+    auto roomIdLayout = new QHBoxLayout(roomIdPanel);
+    roomIdLayout->setContentsMargins(0, 0, 0, 0);
+
+    roomIdLayout->addWidget(new QLabel("Room ID:", roomIdPanel));
+    m_roomIdLabel = new QLabel("None", roomIdPanel); // Создаем QLabel для ID
+    roomIdLayout->addWidget(m_roomIdLabel);
+    roomIdLayout->addStretch();
+
+    roomLayout->addWidget(roomIdPanel); // Добавляем в начало layout
+
     // Video container
     m_videoContainer = new QVideoWidget(m_roomTab);
     m_videoContainer->setMinimumSize(640, 360);
@@ -176,6 +188,9 @@ void MainWindow::createUI()
 
     m_tabWidget->addTab(m_roomTab, "Room");
 
+    m_leaveRoomBtn = new QPushButton("Leave Room", m_roomTab);
+    controlsLayout->addWidget(m_leaveRoomBtn); // Добавляем в панель управления
+
     // Start with Menu tab
     m_tabWidget->setCurrentIndex(0);
 }
@@ -231,6 +246,7 @@ void MainWindow::setupConnections()
         }
         });
 
+    /*
     connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
         QString roomId = m_roomIdEdit->text().trimmed();
         if (roomId.isEmpty()) {
@@ -245,16 +261,54 @@ void MainWindow::setupConnections()
             showNotification("You are already in this room");
         }
         });
+    */
 
     // Automatically switch to room tab when room is created
     connect(m_client, &Client::roomCreated, [this]() {
         m_tabWidget->setCurrentIndex(1);
         });
 
-    // Automatically switch to room tab when joining
-    connect(m_client, &Client::videoUrlReceived, [this]() {
-        m_tabWidget->setCurrentIndex(1);
+
+    connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
+        QString roomId = m_roomIdEdit->text().trimmed();
+        if (roomId.isEmpty() || roomId == " ") {
+            showNotification("Please enter room ID");
+            return;
+        }
+
+        if (m_client->currentRoom() != roomId) {
+            m_tabWidget->setCurrentIndex(1);
+            m_client->joinRoom(roomId); // Только отправка запроса
+        }
+        else {
+            showNotification("You are already in this room");
+        }
         });
+
+    // Обновляем ID комнаты при успешном создании/присоединении
+    connect(m_client, &Client::roomCreated, this, [this](const QString& roomId) {
+        m_roomIdLabel->setText(roomId);
+        });
+
+    connect(m_client, &Client::videoUrlReceived, this, [this](const QUrl& url) {
+        // Обновляем ID комнаты при получении видео
+        if (!m_client->currentRoom().isEmpty()) {
+            m_roomIdLabel->setText(m_client->currentRoom());
+        }
+        });
+    connect(m_leaveRoomBtn, &QPushButton::clicked, this, [this]() {
+        if (!m_client->currentRoom().isEmpty()) {
+            // Отправляем команду на выход
+            m_client->sendMessage("LEAVE_ROOM");
+
+            // Очищаем интерфейс
+            m_tabWidget->setCurrentIndex(0);
+            m_roomIdLabel->setText("None");
+            m_player->stop();
+            m_participantsList->clear();
+        }
+        });
+
 }
 
 void MainWindow::applyStyleSheet()
@@ -351,10 +405,54 @@ void MainWindow::onRoomJoined(const QString& roomId)
     m_roomIdEdit->clear();
 }
 
+/*
 void MainWindow::onParticipantsUpdated(const QStringList& users)
 {
     m_participantsList->clear();
     m_participantsList->addItems(users);
+}
+*/
+
+void MainWindow::onParticipantsUpdated(const QStringList& users) {
+    m_participantsList->clear();
+
+    // Установите желаемый размер иконок для списка
+    const int iconSize = 64; // Увеличьте это значение для больших аватарок
+    m_participantsList->setIconSize(QSize(iconSize, iconSize));
+
+    for (const QString& user : users) {
+        QStringList parts = user.split('|');
+        if (parts.size() < 2) continue;
+
+        QString nickname = parts[0];
+        QString avatarPath = parts[1];
+
+        QListWidgetItem* item = new QListWidgetItem;
+        item->setText(nickname);
+
+        // Загрузка и масштабирование аватарки
+        QPixmap pixmap;
+        if (QFile::exists(avatarPath)) {
+            pixmap.load(avatarPath);
+        }
+        else {
+            pixmap.load(":/avatars/0.png");
+        }
+
+        // Масштабируем изображение до нужного размера
+        if (!pixmap.isNull()) {
+            // Увеличьте размер здесь (например, 64x64)
+            pixmap = pixmap.scaled(iconSize, iconSize,
+                Qt::KeepAspectRatio,
+                Qt::SmoothTransformation);
+            item->setIcon(QIcon(pixmap));
+
+            // Установите размер элемента списка
+            item->setSizeHint(QSize(-1, iconSize + 10)); // +10 для текста
+        }
+
+        m_participantsList->addItem(item);
+    }
 }
 
 void MainWindow::showNotification(const QString& message)
@@ -366,6 +464,7 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
 {
     m_player->stop();
     m_player->setPlaybackRate(1.0);
+
     m_player->setMedia(url);
     m_player->play();
 

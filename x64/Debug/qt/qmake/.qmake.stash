@@ -15,7 +15,8 @@ QMAKE_CXX.INCDIRS = \
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\shared" \
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\winrt" \
     "C:\\Program Files (x86)\\Windows Kits\\10\\Include\\10.0.22621.0\\cppwinrt" \
-    "C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.8\\Include\\um"
+    "C:\\Program Files (x86)\\Windows Kits\\NETFXSDK\\4.8\\Include\\um" \
+    C:\\vcpkg-2025.04.09\\installed\\x64-windows\\include
 QMAKE_CXX.LIBDIRS = \
     "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\lib\\x64" \
     "C:\\Program Files\\Microsoft Visual Studio\\2022\\Community\\VC\\Tools\\MSVC\\14.42.34433\\atlmfc\\lib\\x64" \

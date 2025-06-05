@@ -55,12 +55,14 @@ template <> constexpr inline auto Client::qt_create_metaobjectdata<qt_meta_tag_Z
         "message",
         "syncPositionReceived",
         "position",
+        "filmsListReceived",
+        "films",
         "onConnected",
         "onDisconnected",
         "onTextMessageReceived",
-        "onBinaryMessageReceived",
         "onErrorOccurred",
-        "QAbstractSocket::SocketError"
+        "QAbstractSocket::SocketError",
+        "onReadyRead"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -92,22 +94,24 @@ template <> constexpr inline auto Client::qt_create_metaobjectdata<qt_meta_tag_Z
         QtMocHelpers::SignalData<void(qint64)>(15, 2, QMC::AccessPublic, QMetaType::Void, {{
             { QMetaType::LongLong, 16 },
         }}),
+        // Signal 'filmsListReceived'
+        QtMocHelpers::SignalData<void(const QStringList &)>(17, 2, QMC::AccessPublic, QMetaType::Void, {{
+            { QMetaType::QStringList, 18 },
+        }}),
         // Slot 'onConnected'
-        QtMocHelpers::SlotData<void()>(17, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(19, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onDisconnected'
-        QtMocHelpers::SlotData<void()>(18, 2, QMC::AccessPrivate, QMetaType::Void),
+        QtMocHelpers::SlotData<void()>(20, 2, QMC::AccessPrivate, QMetaType::Void),
         // Slot 'onTextMessageReceived'
-        QtMocHelpers::SlotData<void(const QString &)>(19, 2, QMC::AccessPrivate, QMetaType::Void, {{
+        QtMocHelpers::SlotData<void(const QString &)>(21, 2, QMC::AccessPrivate, QMetaType::Void, {{
             { QMetaType::QString, 14 },
         }}),
-        // Slot 'onBinaryMessageReceived'
-        QtMocHelpers::SlotData<void(const QByteArray &)>(20, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { QMetaType::QByteArray, 14 },
-        }}),
         // Slot 'onErrorOccurred'
-        QtMocHelpers::SlotData<void(QAbstractSocket::SocketError)>(21, 2, QMC::AccessPrivate, QMetaType::Void, {{
-            { 0x80000000 | 22, 5 },
+        QtMocHelpers::SlotData<void(QAbstractSocket::SocketError)>(22, 2, QMC::AccessPrivate, QMetaType::Void, {{
+            { 0x80000000 | 23, 5 },
         }}),
+        // Slot 'onReadyRead'
+        QtMocHelpers::SlotData<void()>(24, 2, QMC::AccessPrivate, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -139,11 +143,12 @@ void Client::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         case 5: _t->videoUrlReceived((*reinterpret_cast< std::add_pointer_t<QUrl>>(_a[1]))); break;
         case 6: _t->chatMessageReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1])),(*reinterpret_cast< std::add_pointer_t<QString>>(_a[2]))); break;
         case 7: _t->syncPositionReceived((*reinterpret_cast< std::add_pointer_t<qint64>>(_a[1]))); break;
-        case 8: _t->onConnected(); break;
-        case 9: _t->onDisconnected(); break;
-        case 10: _t->onTextMessageReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
-        case 11: _t->onBinaryMessageReceived((*reinterpret_cast< std::add_pointer_t<QByteArray>>(_a[1]))); break;
+        case 8: _t->filmsListReceived((*reinterpret_cast< std::add_pointer_t<QStringList>>(_a[1]))); break;
+        case 9: _t->onConnected(); break;
+        case 10: _t->onDisconnected(); break;
+        case 11: _t->onTextMessageReceived((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 12: _t->onErrorOccurred((*reinterpret_cast< std::add_pointer_t<QAbstractSocket::SocketError>>(_a[1]))); break;
+        case 13: _t->onReadyRead(); break;
         default: ;
         }
     }
@@ -176,6 +181,8 @@ void Client::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
             return;
         if (QtMocHelpers::indexOfMethod<void (Client::*)(qint64 )>(_a, &Client::syncPositionReceived, 7))
             return;
+        if (QtMocHelpers::indexOfMethod<void (Client::*)(const QStringList & )>(_a, &Client::filmsListReceived, 8))
+            return;
     }
 }
 
@@ -198,14 +205,14 @@ int Client::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 13)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 13;
+        _id -= 14;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 13)
+        if (_id < 14)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 13;
+        _id -= 14;
     }
     return _id;
 }
@@ -256,5 +263,11 @@ void Client::chatMessageReceived(const QString & _t1, const QString & _t2)
 void Client::syncPositionReceived(qint64 _t1)
 {
     QMetaObject::activate<void>(this, &staticMetaObject, 7, nullptr, _t1);
+}
+
+// SIGNAL 8
+void Client::filmsListReceived(const QStringList & _t1)
+{
+    QMetaObject::activate<void>(this, &staticMetaObject, 8, nullptr, _t1);
 }
 QT_WARNING_POP

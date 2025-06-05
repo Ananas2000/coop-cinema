@@ -1,2 +1,2 @@
 CONFIG += no_fixpath
-QT = concurrent core gui multimedia multimediawidgets network svg websockets widgets
+QT = core gui network widgets concurrent multimedia multimediawidgets svg websockets

@@ -3,6 +3,8 @@
 
 #include <QMainWindow>
 #include <QSplitter>
+#include <QPixmap>
+#include <QIcon>
 #include "Client.h"
 #include "VideoRenderer.h"
 #include "Player.h"
@@ -78,6 +80,8 @@ private:
     QComboBox* m_speedCombo;
     QLabel* m_positionLabel;
     QLabel* m_statusLabel;
+    QLabel* m_roomIdLabel; // Для отображения ID комнаты
+    QPushButton* m_leaveRoomBtn;
 
     QIcon m_playIcon;
     QIcon m_pauseIcon;

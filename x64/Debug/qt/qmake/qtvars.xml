@@ -1,11 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-<Qt_DEFINES_>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_CONCURRENT_LIB;QT_MULTIMEDIAWIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_WIDGETS_LIB;QT_SVG_LIB;QT_GUI_LIB;QT_WEBSOCKETS_LIB;QT_NETWORK_LIB;QT_CORE_LIB</Qt_DEFINES_>
-<Qt_INCLUDEPATH_>C:\Users\?????\Desktop\?????????\QtApp\QtApp\x64\Debug\qt\qmake;C:\Qt\6.9.0\msvc2022_64\include;C:\Qt\6.9.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.9.0\msvc2022_64\include\QtMultimediaWidgets;C:\Qt\6.9.0\msvc2022_64\include\QtMultimedia;C:\Qt\6.9.0\msvc2022_64\include\QtWidgets;C:\Qt\6.9.0\msvc2022_64\include\QtSvg;C:\Qt\6.9.0\msvc2022_64\include\QtGui;C:\Qt\6.9.0\msvc2022_64\include\QtWebSockets;C:\Qt\6.9.0\msvc2022_64\include\QtNetwork;C:\Qt\6.9.0\msvc2022_64\include\QtCore;C:\Users\?????\Desktop\?????????\QtApp\QtApp\x64\Debug\qt\qmake;C:\Qt\6.9.0\msvc2022_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
+<Qt_DEFINES_>_WINDOWS;UNICODE;_UNICODE;WIN32;_ENABLE_EXTENDED_ALIGNED_STORAGE;WIN64;QT_MULTIMEDIAWIDGETS_LIB;QT_WIDGETS_LIB;QT_MULTIMEDIA_LIB;QT_SVG_LIB;QT_GUI_LIB;QT_WEBSOCKETS_LIB;QT_NETWORK_LIB;QT_CONCURRENT_LIB;QT_CORE_LIB</Qt_DEFINES_>
+<Qt_INCLUDEPATH_>"D:\curse\semestr3\????? ? ??????\app\app\x64\Debug\qt\qmake";C:\Qt\6.9.0\msvc2022_64\include;C:\Qt\6.9.0\msvc2022_64\include\QtMultimediaWidgets;C:\Qt\6.9.0\msvc2022_64\include\QtWidgets;C:\Qt\6.9.0\msvc2022_64\include\QtMultimedia;C:\Qt\6.9.0\msvc2022_64\include\QtSvg;C:\Qt\6.9.0\msvc2022_64\include\QtGui;C:\Qt\6.9.0\msvc2022_64\include\QtWebSockets;C:\Qt\6.9.0\msvc2022_64\include\QtNetwork;C:\Qt\6.9.0\msvc2022_64\include\QtConcurrent;C:\Qt\6.9.0\msvc2022_64\include\QtCore;"D:\curse\semestr3\????? ? ??????\app\app\x64\Debug\qt\qmake";C:\Qt\6.9.0\msvc2022_64\mkspecs\win32-msvc</Qt_INCLUDEPATH_>
 <Qt_STDCPP_>stdcpp17</Qt_STDCPP_>
 <Qt_RUNTIME_>MultiThreadedDebugDLL</Qt_RUNTIME_>
 <Qt_CL_OPTIONS_>-Zc:rvalueCast -Zc:inline -Zc:strictStrings -Zc:throwingNew -permissive- -Zc:__cplusplus -Zc:externConstexpr -utf-8</Qt_CL_OPTIONS_>
-<Qt_LIBS_>C:\Qt\6.9.0\msvc2022_64\lib\Qt6Concurrentd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6MultimediaWidgetsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Multimediad.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Widgetsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Svgd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Guid.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6WebSocketsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Networkd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Cored.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6EntryPointd.lib;shell32.lib</Qt_LIBS_>
+<Qt_LIBS_>C:\Qt\6.9.0\msvc2022_64\lib\Qt6MultimediaWidgetsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Widgetsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Multimediad.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Svgd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Guid.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6WebSocketsd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Networkd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Concurrentd.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6Cored.lib;C:\Qt\6.9.0\msvc2022_64\lib\Qt6EntryPointd.lib;shell32.lib</Qt_LIBS_>
 <Qt_LINK_OPTIONS_>"/MANIFESTDEPENDENCY:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' publicKeyToken='6595b64144ccf1df' language='*' processorArchitecture='*'"</Qt_LINK_OPTIONS_>
 <QMake_QT_SYSROOT_></QMake_QT_SYSROOT_>
 <QMake_QT_INSTALL_PREFIX_>C:/Qt/6.9.0/msvc2022_64</QMake_QT_INSTALL_PREFIX_>
@@ -32,7 +32,7 @@
 <QMake_QMAKE_XSPEC_>win32-msvc</QMake_QMAKE_XSPEC_>
 <QMake_QMAKE_VERSION_>3.1</QMake_QMAKE_VERSION_>
 <QMake_QT_VERSION_>6.9.0</QMake_QT_VERSION_>
-<QtBkup_QtHash>jVHbasMwDP0VfUFTwijsoQ+OpHlafEO2G0oZ+f+/mF1SMvayPBiEzkU68kOIQ5Fyv15O76fz6vMNx/M4rpc3wBiwqja8lcpgq4CvrohnEvOrXIQslwyByxJ1hnyzsPCUI869/YInCdAf8YcEztchafxiLIMU9s+mFInBaqxpQIfRJ3HcWNyIyDlH3VkZJKCrxMmUz6NWhug5wrhNTKJtgajCGXIhTOmolTPBVmM5FxPIKIHWdkfPR/Ub3cmkRu+Abo2ppz98lj3LJoTm9Y+6xZ6HXdiOx6H9P/b4HTu2wx+X13jiqdrvHw==</QtBkup_QtHash>
+<QtBkup_QtHash>jZLdasMwDIVfxU/QlDAKG/TCkVRPi/8myw1lGX3/t5gTWjJ2s1wYjHW+Ix3hL0aKyno7w9v8qfPp8Ho4zqFcoT/2/f30YiAJGVfZRNIpyWgmRkdaWiFCFWm4CdUrB0K2v65PXbk6M9FQEowLNnBcD9KFI5VzlyV9EGjHSmF9ZOUUnaSaO/CQQmZPTUVNCFRKkk1VDEfwFSlbfd9rZRHXFtY/YGRpAyRhKqYoQs57rbyNrlpHRW1EK2iktm0G2ss/5J4HsXIz4O8pL+l3r2XL8gBN8/qHbrHHbgPb8ii2XwBL/KW2b4Y/Ls/2SEN13z8=</QtBkup_QtHash>
     <QtVersion>6.9.0</QtVersion>
     <QtVersionMajor>6</QtVersionMajor>
     <QtVersionMinor>9</QtVersionMinor>
