@@ -2,9 +2,10 @@
 #define CLIENT_H
 
 #include <QObject>
-#include <QWebSocket>
+#include <QTcpSocket>
 #include <QUrl>
 #include <QStringList>
+#include <QMap>
 
 class Client : public QObject
 {
@@ -14,12 +15,14 @@ public:
 
     void connectToServer(const QString& host, quint16 port);
     void disconnectFromServer();
-    
+
     void createRoom();
     void joinRoom(const QString& roomId);
     void sendReaction(const QString& reaction);
     void sendMessage(const QString& message);
     void sendPlayerState(bool isPaused, qint64 position);
+
+    QString currentRoom() const { return m_currentRoom; }
 
 signals:
     void connected();
@@ -30,21 +33,26 @@ signals:
     void videoUrlReceived(const QUrl& url);
     void chatMessageReceived(const QString& user, const QString& message);
     void syncPositionReceived(qint64 position);
+    void filmsListReceived(const QStringList& films);
 
 private slots:
     void onConnected();
     void onDisconnected();
     void onTextMessageReceived(const QString& message);
-    void onBinaryMessageReceived(const QByteArray& message);
     void onErrorOccurred(QAbstractSocket::SocketError error);
+    void onReadyRead();
 
 private:
     void processVideoData(const QByteArray& data);
+    void assignAvatar(const QString& userNickname);
 
-    QWebSocket* m_socket;
+    QTcpSocket* m_socket;
     QString m_currentRoom;
     QString m_userNickname;
     QString m_userAvatar;
-};
 
+    QStringList m_avatars;
+    int m_avatarIndex = 0;
+    QMap<QString, QString> m_userAvatars;
+};
 #endif // CLIENT_H

@@ -38,7 +38,7 @@ void SettingsManager::setServerAddress(const QString& address) {
 }
 
 int SettingsManager::serverPort() const {
-    return getSetting(NETWORK, "serverPort", 12345).toInt();
+    return getSetting(NETWORK, "serverPort", 8888).toInt();
 }
 
 void SettingsManager::setServerPort(int port) {
@@ -106,7 +106,7 @@ void SettingsManager::validateNetworkSettings() {
 
     int port = serverPort();
     if (port <= 0 || port > 65535) {
-        setServerPort(12345);
+        setServerPort(8888);
     }
 }
 

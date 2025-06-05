@@ -96,14 +96,10 @@
     <ClCompile Include="SettingsManager.cpp" />
     <ClCompile Include="SyncHandler.cpp" />
     <ClCompile Include="VideoRenderer.cpp" />
-    <QtRcc Include="QtApp.qrc" />
-    <QtUic Include="QtApp.ui" />
-    <QtMoc Include="QtApp.h" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="MainWindow.cpp" />
     <ClCompile Include="NotificationManager.cpp" />
     <ClCompile Include="Player.cpp" />
-    <ClCompile Include="QtApp.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>

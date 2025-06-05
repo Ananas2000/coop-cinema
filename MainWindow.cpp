@@ -1,4 +1,4 @@
-#include "MainWindow.h"
+Ôªø#include "MainWindow.h"
 #include "Client.h"
 #include "VideoRenderer.h"
 #include "Player.h"
@@ -17,6 +17,9 @@
 #include <QIcon>
 #include <QUrl>
 #include <QStringList>
+#include <QLineEdit>
+#include <QTabWidget>
+#include <QFile>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent),
@@ -24,17 +27,24 @@ MainWindow::MainWindow(QWidget* parent)
     m_videoRenderer(new VideoRenderer(this)),
     m_player(new Player(this)),
     m_notificationManager(new NotificationManager(this)),
-    m_centralWidget(new QWidget(this)),
-    m_mainSplitter(new QSplitter(Qt::Horizontal, this)),
-    m_videoContainer(new QVideoWidget(this)),
-    m_sidebar(new QWidget(this)),
-    m_participantsList(new QListWidget(this)),
-    m_chatReactions(new QListWidget(this)),
-    m_playPauseBtn(new QPushButton(this)),
-    m_volumeSlider(new QSlider(Qt::Horizontal, this)),
-    m_speedCombo(new QComboBox(this)),
-    m_positionLabel(new QLabel("00:00", this)),
-    m_statusLabel(new QLabel("Disconnected", this)),
+    m_tabWidget(nullptr),
+    m_menuTab(nullptr),
+    m_createRoomBtn(nullptr),
+    m_movieList(nullptr),
+    m_roomIdEdit(nullptr),
+    m_joinRoomBtn(nullptr),
+    m_roomTab(nullptr),
+    m_centralWidget(nullptr),
+    m_mainSplitter(nullptr),
+    m_videoContainer(nullptr),
+    m_sidebar(nullptr),
+    m_participantsList(nullptr),
+    m_chatReactions(nullptr),
+    m_playPauseBtn(nullptr),
+    m_volumeSlider(nullptr),
+    m_speedCombo(nullptr),
+    m_positionLabel(nullptr),
+    m_statusLabel(nullptr),
     m_playIcon(QIcon::fromTheme("media-playback-start")),
     m_pauseIcon(QIcon::fromTheme("media-playback-pause"))
 {
@@ -42,81 +52,242 @@ MainWindow::MainWindow(QWidget* parent)
     setupConnections();
     applyStyleSheet();
 
-    m_client->connectToServer("localhost", 12345); // œËÏÂ ÔÓ‰ÍÎ˛˜ÂÌËˇ
+    m_client->connectToServer("localhost", 8888);
 }
 
 MainWindow::~MainWindow() {}
 
 void MainWindow::createUI()
 {
-    setCentralWidget(m_centralWidget);
+    // Create tab widget
+    m_tabWidget = new QTabWidget(this);
+    setCentralWidget(m_tabWidget);
 
+    // ======================
+    // Menu Tab
+    // ======================
+    m_menuTab = new QWidget(this);
+    auto menuLayout = new QVBoxLayout(m_menuTab);
+
+    // Create room button
+    m_getFilmsBtn = new QPushButton("Get Films", m_menuTab);
+    menuLayout->addWidget(m_getFilmsBtn);
+
+    // Movie list
+    menuLayout->addWidget(new QLabel("Available Movies:", m_menuTab));
+    m_movieList = new QListWidget(m_menuTab);
+    menuLayout->addWidget(m_movieList);
+
+    // Film number input
+    auto filmNumberContainer = new QWidget(m_menuTab);
+    auto filmNumberLayout = new QHBoxLayout(filmNumberContainer);
+    filmNumberLayout->setContentsMargins(0, 0, 0, 0);
+
+    filmNumberLayout->addWidget(new QLabel("Film number:", filmNumberContainer));
+    m_filmNumberEdit = new QLineEdit(filmNumberContainer);
+    filmNumberLayout->addWidget(m_filmNumberEdit);
+
+    m_createRoomBtn = new QPushButton("Create", filmNumberContainer);
+    filmNumberLayout->addWidget(m_createRoomBtn);
+
+    menuLayout->addWidget(filmNumberContainer);
+
+    // Join room section
+    auto joinContainer = new QWidget(m_menuTab);
+    auto joinLayout = new QHBoxLayout(joinContainer);
+    joinLayout->setContentsMargins(0, 0, 0, 0);
+
+    joinLayout->addWidget(new QLabel("Room ID:", joinContainer));
+
+    m_roomIdEdit = new QLineEdit(joinContainer);
+    joinLayout->addWidget(m_roomIdEdit);
+
+    m_joinRoomBtn = new QPushButton("Join Room", joinContainer);
+    joinLayout->addWidget(m_joinRoomBtn);
+
+    menuLayout->addWidget(joinContainer);
+    menuLayout->addStretch();
+
+    m_tabWidget->addTab(m_menuTab, "Menu");
+
+    // ======================
+    // Room Tab
+    // ======================
+    m_roomTab = new QWidget(this);
+    auto roomLayout = new QVBoxLayout(m_roomTab);
+
+    // Video container
+    m_videoContainer = new QVideoWidget(m_roomTab);
     m_videoContainer->setMinimumSize(640, 360);
     m_player->setVideoOutput(m_videoContainer);
 
-    // Layout ·ÓÍÓ‚ÓÈ Ô‡ÌÂÎË
-    auto sidebarLayout = new QVBoxLayout;
-    sidebarLayout->addWidget(new QLabel("Participants:", this));
+    // Sidebar
+    m_sidebar = new QWidget(m_roomTab);
+    auto sidebarLayout = new QVBoxLayout(m_sidebar);
+
+    sidebarLayout->addWidget(new QLabel("Participants:", m_sidebar));
+    m_participantsList = new QListWidget(m_sidebar);
     sidebarLayout->addWidget(m_participantsList);
 
-    sidebarLayout->addWidget(new QLabel("Reactions:", this));
+    sidebarLayout->addWidget(new QLabel("Reactions:", m_sidebar));
+    m_chatReactions = new QListWidget(m_sidebar);
+    m_chatReactions->addItems({ "üëç", "üëé", "üòÇ", "üòÆ", "üò¢", "üî•" });
     sidebarLayout->addWidget(m_chatReactions);
 
-    auto reactionBtn = new QPushButton("Send Reaction", this);
+    auto reactionBtn = new QPushButton("Send Reaction", m_sidebar);
     sidebarLayout->addWidget(reactionBtn);
     connect(reactionBtn, &QPushButton::clicked, this, &MainWindow::sendReaction);
 
-    m_sidebar->setLayout(sidebarLayout);
-
+    // Splitter for video and sidebar
+    m_mainSplitter = new QSplitter(Qt::Horizontal, m_roomTab);
     m_mainSplitter->addWidget(m_videoContainer);
     m_mainSplitter->addWidget(m_sidebar);
     m_mainSplitter->setStretchFactor(0, 3);
     m_mainSplitter->setStretchFactor(1, 1);
 
-    // ÕËÊÌˇˇ Ô‡ÌÂÎ¸ ÛÔ‡‚ÎÂÌËˇ
+    // Controls
+    m_playPauseBtn = new QPushButton(m_roomTab);
     m_playPauseBtn->setIcon(m_playIcon);
+
+    m_volumeSlider = new QSlider(Qt::Horizontal, m_roomTab);
     m_volumeSlider->setRange(0, 100);
     m_volumeSlider->setValue(50);
+
+    m_speedCombo = new QComboBox(m_roomTab);
     m_speedCombo->addItems({ "0.5x", "1.0x", "1.5x", "2.0x" });
     m_speedCombo->setCurrentText("1.0x");
 
+    m_positionLabel = new QLabel("00:00", m_roomTab);
+    m_statusLabel = new QLabel("Disconnected", m_roomTab);
+
     auto controlsLayout = new QHBoxLayout;
     controlsLayout->addWidget(m_playPauseBtn);
-    controlsLayout->addWidget(new QLabel("Volume:", this));
+    controlsLayout->addWidget(new QLabel("Volume:", m_roomTab));
     controlsLayout->addWidget(m_volumeSlider);
-    controlsLayout->addWidget(new QLabel("Speed:", this));
+    controlsLayout->addWidget(new QLabel("Speed:", m_roomTab));
     controlsLayout->addWidget(m_speedCombo);
     controlsLayout->addStretch();
     controlsLayout->addWidget(m_positionLabel);
     controlsLayout->addWidget(m_statusLabel);
 
-    auto mainLayout = new QVBoxLayout(m_centralWidget);
-    mainLayout->addWidget(m_mainSplitter);
-    mainLayout->addLayout(controlsLayout);
+    // Add to room layout
+    roomLayout->addWidget(m_mainSplitter);
+    roomLayout->addLayout(controlsLayout);
+
+    m_tabWidget->addTab(m_roomTab, "Room");
+
+    // Start with Menu tab
+    m_tabWidget->setCurrentIndex(0);
 }
 
 void MainWindow::setupConnections()
 {
+    // Player controls
     connect(m_playPauseBtn, &QPushButton::clicked, this, &MainWindow::handlePlayPause);
     connect(m_volumeSlider, &QSlider::valueChanged, this, &MainWindow::handleVolumeChange);
     connect(m_speedCombo, &QComboBox::currentTextChanged, this, &MainWindow::handleSpeedChange);
 
+    // Player signals
     connect(m_player, &Player::positionChanged, this, &MainWindow::updatePositionDisplay);
     connect(m_player, &Player::playbackStateChanged, this, &MainWindow::updatePlayerControls);
     connect(m_player, &Player::errorOccurred, this, &MainWindow::showNotification);
 
-    connect(m_client, &Client::connected, [this]() { updateConnectionStatus(true); });
-    connect(m_client, &Client::disconnected, [this]() { updateConnectionStatus(false); });
+    // Client signals
+    connect(m_client, &Client::connected, [this]() {
+        updateConnectionStatus(true);
+        showNotification("Connected to server");
+        });
+
+    connect(m_client, &Client::disconnected, [this]() {
+        updateConnectionStatus(false);
+        showNotification("Disconnected from server");
+        m_tabWidget->setCurrentIndex(0); // Return to Menu tab
+        });
+
     connect(m_client, &Client::roomCreated, this, &MainWindow::onRoomJoined);
     connect(m_client, &Client::participantsUpdated, this, &MainWindow::onParticipantsUpdated);
     connect(m_client, &Client::videoUrlReceived, this, &MainWindow::handleVideoUrlReceived);
+    connect(m_client, &Client::errorOccurred, this, &MainWindow::showNotification);
+    connect(m_client, &Client::filmsListReceived, this, &MainWindow::onFilmsListReceived);
+
+    connect(m_getFilmsBtn, &QPushButton::clicked, [this]() {
+        m_client->sendMessage("GET_FILMS");
+        });
+
+    connect(m_createRoomBtn, &QPushButton::clicked, [this]() {
+        QString numberText = m_filmNumberEdit->text().trimmed();
+        if (numberText.isEmpty()) {
+            showNotification("Please enter film number");
+            return;
+        }
+
+        // –û—Ç–ø—Ä–∞–≤–ª—è–µ–º –∫–æ–º–∞–Ω–¥—É —Å–æ–∑–¥–∞–Ω–∏—è –∫–æ–º–Ω–∞—Ç—ã –∏ –Ω–æ–º–µ—Ä —Ñ–∏–ª—å–º–∞
+        m_client->sendMessage("1");
+        m_client->sendMessage(numberText);
+        });
+
+    // Menu tab actions
+    connect(m_createRoomBtn, &QPushButton::clicked, this, [this]() {
+        if (m_client->currentRoom().isEmpty()) {
+            m_client->createRoom();
+        }
+        else {
+            showNotification("You are already in a room");
+        }
+        });
+
+    connect(m_joinRoomBtn, &QPushButton::clicked, this, [this]() {
+        QString roomId = m_roomIdEdit->text().trimmed();
+        if (roomId.isEmpty()) {
+            showNotification("Please enter room ID");
+            return;
+        }
+
+        if (m_client->currentRoom() != roomId) {
+            m_client->joinRoom(roomId);
+        }
+        else {
+            showNotification("You are already in this room");
+        }
+        });
+
+    // Automatically switch to room tab when room is created
+    connect(m_client, &Client::roomCreated, [this]() {
+        m_tabWidget->setCurrentIndex(1);
+        });
+
+    // Automatically switch to room tab when joining
+    connect(m_client, &Client::videoUrlReceived, [this]() {
+        m_tabWidget->setCurrentIndex(1);
+        });
 }
 
 void MainWindow::applyStyleSheet()
 {
     setStyleSheet(
-        "QMainWindow { background-color: #2b2b2b; color: white; }"
-        "QLabel, QListWidget, QPushButton, QComboBox { font-size: 14px; }"
+        "QMainWindow, QWidget { background-color: #2b2b2b; color: white; }"
+        "QLabel, QListWidget, QPushButton, QComboBox, QLineEdit { "
+        "   font-size: 14px; "
+        "   background-color: #3c3c3c; "
+        "   color: white; "
+        "   border: 1px solid #555; "
+        "   padding: 5px; "
+        "}"
+        "QTabWidget::pane { border: 0; }"
+        "QTabBar::tab { "
+        "   background: #3c3c3c; "
+        "   color: white; "
+        "   padding: 8px; "
+        "   border: 1px solid #555; "
+        "   border-bottom: none; "
+        "   border-top-left-radius: 4px; "
+        "   border-top-right-radius: 4px; "
+        "}"
+        "QTabBar::tab:selected { "
+        "   background: #555; "
+        "   border-color: #777; "
+        "}"
+        "QLineEdit { background: #333; }"
     );
 }
 
@@ -138,9 +309,12 @@ void MainWindow::handleVolumeChange(int volume)
 void MainWindow::handleSpeedChange(const QString& speed)
 {
     QString cleaned = speed;
-    cleaned.remove('x'); // »ÒÔ‡‚ÎÂÌÌ‡ˇ ÒÚÓÍ‡
-    float rate = cleaned.toFloat();
-    m_player->setPlaybackRate(rate);
+    cleaned.remove('x');
+    bool ok;
+    float rate = cleaned.toFloat(&ok);
+    if (ok) {
+        m_player->setPlaybackRate(rate);
+    }
 }
 
 void MainWindow::sendReaction()
@@ -159,9 +333,27 @@ void MainWindow::updatePositionDisplay(qint64 position)
     m_positionLabel->setText(QString::asprintf("%02d:%02d", minutes, seconds));
 }
 
+void MainWindow::onFilmsListReceived(const QStringList& films)
+{
+    // –°–æ—Ö—Ä–∞–Ω—è–µ–º –≤ —Ñ–∞–π–ª
+    QFile file("films.txt");
+    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream out(&file);
+        for (const QString& film : films) {
+            out << film << "\n";
+        }
+        file.close();
+    }
+
+    // –û—Ç–æ–±—Ä–∞–∂–∞–µ–º –≤ —Å–ø–∏—Å–∫–µ
+    m_movieList->clear();
+    m_movieList->addItems(films);
+}
+
 void MainWindow::onRoomJoined(const QString& roomId)
 {
     showNotification("Joined room: " + roomId);
+    m_roomIdEdit->clear();
 }
 
 void MainWindow::onParticipantsUpdated(const QStringList& users)
@@ -179,7 +371,7 @@ void MainWindow::handleVideoUrlReceived(const QUrl& url)
 {
     m_player->stop();
     m_player->setPlaybackRate(1.0);
-    m_client->sendMessage("START_PLAYBACK|" + url.toString()); // »ÒÔ‡‚ÎÂÌÌ‡ˇ ÒÚÓÍ‡
+    //m_player->setMedia(url);
     m_player->play();
 }
 

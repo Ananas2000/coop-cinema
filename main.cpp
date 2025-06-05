@@ -8,6 +8,9 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Room>("Room");
     qRegisterMetaType<QList<UserProfile>>("QList<UserProfile>");
 
+    Client client;
+    client.connectToServer("localhost", 8888);
+
     QApplication app(argc, argv);
     MainWindow mainWindow;
     mainWindow.show();

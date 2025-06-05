@@ -15,6 +15,8 @@ class QPushButton;
 class QSlider;
 class QLabel;
 class QComboBox;
+class QTabWidget;
+class QLineEdit;
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow
@@ -34,6 +36,7 @@ private slots:
 
     void onRoomJoined(const QString& roomId);
     void onParticipantsUpdated(const QStringList& users);
+    void onFilmsListReceived(const QStringList& films);
     void showNotification(const QString& message);
     void handleVideoUrlReceived(const QUrl& url);
 
@@ -50,6 +53,20 @@ private:
     Player* m_player;
     NotificationManager* m_notificationManager;
 
+    // UI Elements
+    QTabWidget* m_tabWidget;
+    QPushButton* m_getFilmsBtn; // Новая кнопка
+    QLineEdit* m_filmNumberEdit; // Поле для номера фильма
+    QPushButton* m_createRoomBtn; // Кнопка создания комнаты
+
+    // Menu Tab
+    QWidget* m_menuTab;
+    QListWidget* m_movieList;
+    QLineEdit* m_roomIdEdit;
+    QPushButton* m_joinRoomBtn;
+
+    // Room Tab
+    QWidget* m_roomTab;
     QWidget* m_centralWidget;
     QSplitter* m_mainSplitter;
     QVideoWidget* m_videoContainer;

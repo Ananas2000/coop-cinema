@@ -23,20 +23,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="QtApp.qrc">
-      <Filter>Resource Files</Filter>
-    </QtRcc>
-    <QtUic Include="QtApp.ui">
-      <Filter>Form Files</Filter>
-    </QtUic>
-    <QtMoc Include="QtApp.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <ClCompile Include="QtApp.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
