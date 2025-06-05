@@ -1,3 +1,4 @@
+// Player.h
 #ifndef PLAYER_H
 #define PLAYER_H
 
@@ -5,10 +6,7 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <QVideoWidget>
-#include <QTimer>
-#include <QUrl>
 #include "VideoRenderer.h"
-#include "SyncHandler.h"
 
 class Player : public QObject
 {
@@ -38,30 +36,23 @@ signals:
     void durationChanged(qint64 duration);
 
 public slots:
-    void updateSyncPosition(qint64 serverPosition);
     void handleVideoFrame(const QVideoFrame& frame);
 
 private slots:
     void onMediaStatusChanged(QMediaPlayer::MediaStatus status);
     void onErrorOccurred(QMediaPlayer::Error error, const QString& errorString);
-    void updatePosition();
     void onMediaPlayerPositionChanged(qint64 position);
 
 private:
     void initializePlayer();
     void setupVideoRenderer();
-    void applySyncCorrection(qint64 serverTime);
-    
+
     QMediaPlayer* m_mediaPlayer;
     QAudioOutput* m_audioOutput;
     QVideoWidget* m_videoWidget;
     VideoRenderer* m_videoRenderer;
-    SyncHandler* m_syncHandler;
-    QTimer* m_positionTimer;
 
-    qint64 m_lastSyncPosition;
     float m_playbackRate;
-    bool m_externalSync;
     bool m_seeking = false;
 };
 

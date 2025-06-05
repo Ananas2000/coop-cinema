@@ -1,3 +1,4 @@
+// Player.cpp
 #include "Player.h"
 #include <QVBoxLayout>
 #include <QNetworkRequest>
@@ -9,11 +10,7 @@ Player::Player(QWidget* parentWidget, QObject* parent)
     m_audioOutput(new QAudioOutput(this)),
     m_videoWidget(new QVideoWidget(parentWidget)),
     m_videoRenderer(new VideoRenderer(this)),
-    m_syncHandler(new SyncHandler(this)),
-    m_positionTimer(new QTimer(this)),
-    m_lastSyncPosition(0),
-    m_playbackRate(1.0f),
-    m_externalSync(false)
+    m_playbackRate(1.0f)
 {
     initializePlayer();
     setupVideoRenderer();
@@ -21,15 +18,9 @@ Player::Player(QWidget* parentWidget, QObject* parent)
     m_videoWidget->setMinimumSize(640, 360);
     m_videoWidget->show();
 
-    connect(m_positionTimer, &QTimer::timeout, this, &Player::updatePosition);
-    connect(m_syncHandler, &SyncHandler::syncCorrection, this, &Player::updateSyncPosition);
-    connect(m_videoRenderer, &VideoRenderer::frameProcessed, this, &Player::handleVideoFrame);
-
     connect(m_mediaPlayer, &QMediaPlayer::durationChanged, this, [this](qint64 dur) {
         emit durationChanged(dur);
         });
-
-    m_positionTimer->start(500);
 }
 
 Player::~Player()
@@ -53,7 +44,6 @@ void Player::initializePlayer() {
         this, &Player::playbackStateChanged);
 }
 
-
 void Player::setupVideoRenderer()
 {
     m_videoRenderer->initialize(nullptr, 640, 360);
@@ -76,16 +66,12 @@ void Player::stop()
 {
     m_mediaPlayer->stop();
     m_videoRenderer->stop();
-    m_positionTimer->stop();
 }
 
 void Player::seek(qint64 positionMs) {
     m_seeking = true;
-
     m_mediaPlayer->setPosition(positionMs);
     m_videoRenderer->seek(positionMs);
-    m_externalSync = false;
-
     m_seeking = false;
 }
 
@@ -111,7 +97,7 @@ void Player::setVideoOutput(QWidget* container) {
     if (container) {
         auto layout = new QVBoxLayout(container);
         layout->addWidget(m_videoWidget);
-        m_videoRenderer->initialize(m_videoWidget->videoSink(), 640, 360); // Инициализируем
+        m_videoRenderer->initialize(m_videoWidget->videoSink(), 640, 360);
     }
 }
 
@@ -132,17 +118,9 @@ qint64 Player::currentPosition() const
     return m_mediaPlayer->position();
 }
 
-void Player::updateSyncPosition(qint64 serverPosition)
-{
-    m_lastSyncPosition = serverPosition;
-    m_externalSync = true;
-    applySyncCorrection(serverPosition);
-}
-
 void Player::handleVideoFrame(const QVideoFrame& frame)
 {
     Q_UNUSED(frame);
-    // Реализация обработки кадра при необходимости
 }
 
 void Player::onMediaStatusChanged(QMediaPlayer::MediaStatus status)
@@ -161,20 +139,4 @@ void Player::onErrorOccurred(QMediaPlayer::Error error, const QString& errorStri
 {
     Q_UNUSED(error);
     emit errorOccurred(errorString);
-}
-
-void Player::updatePosition() {
-    if (!m_seeking) {
-        emit positionChanged(currentPosition());
-    }
-}
-
-void Player::applySyncCorrection(qint64 serverTime)
-{
-    qint64 localTime = currentPosition();
-    qint64 delta = serverTime - localTime;
-
-    if (std::abs(delta) > 200) {
-        seek(serverTime);
-    }
 }

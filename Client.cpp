@@ -106,7 +106,7 @@ void Client::onTextMessageReceived(const QString& message)
         QStringList films;
         int counter = 1;
         for (int i = 0; i < parts.size(); i += 2) {
-            if (i + 2 < parts.size()) {
+            if (i + 1 < parts.size()) {
                 QString current = QString::number(counter) + ". " + parts[i] + " (" + parts[i + 1] + ")";
                 films << current;
                 counter++;
@@ -136,9 +136,6 @@ void Client::onTextMessageReceived(const QString& message)
     }
     else if (command == "CHAT_MESSAGE") {
         if (parts.size() >= 2) emit chatMessageReceived(parts[0], parts[1]);
-    }
-    else if (command == "SYNC_POSITION") {
-        if (!parts.isEmpty()) emit syncPositionReceived(parts[0].toLongLong());
     }
     else if (command == "PLAYER_STATE") {
         if (parts.size() >= 4) {

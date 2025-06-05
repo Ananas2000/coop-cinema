@@ -23,6 +23,7 @@
 #include <QLineEdit>
 #include <QTabWidget>
 #include <QFile>
+#include <QDateTime>
 #include <msxml.h>
 
 MainWindow::MainWindow(QWidget* parent)
@@ -306,12 +307,6 @@ void MainWindow::setupConnections()
             m_positionSlider->setValue(static_cast<int>(position));
             updatePositionDisplay(position);
         }
-        if (m_syncing) return;
-        qint64 now = QDateTime::currentMSecsSinceEpoch();
-        if (m_player->isPlaying() && (now - m_lastPlayerStateSendTime) >= 1000) {
-            m_client->sendPlayerState(!m_player->isPlaying(), position);
-            m_lastPlayerStateSendTime = now;
-        }
         });
 
     // Обновление длительности
@@ -469,6 +464,14 @@ void MainWindow::setupConnections()
 
         // Исправленный вызов
         m_client->sendPlayerState(!m_player->isPlaying(), pos);
+        });
+
+    connect(m_speedCombo, &QComboBox::currentTextChanged, this, [this](const QString& speed) {
+        handleSpeedChange(speed);
+        // Отправляем новое состояние
+        if (!m_client->currentRoom().isEmpty()) {
+            m_client->sendPlayerState(!m_player->isPlaying(), m_player->currentPosition());
+        }
         });
 }
 
@@ -775,12 +778,10 @@ void MainWindow::onPlayerStateReceived(const QString& roomId,
     qint64 position)
 {
     Q_UNUSED(roomId);
+    Q_UNUSED(senderNick);
 
-    // Всегда применяем состояние независимо от отправителя
-    m_syncing = true;
-
-    // Синхронизация состояния паузы
-    if (m_player->isPlaying() != !isPaused) {
+    // Применяем только если состояние отличается
+    if (m_player->isPlaying() == isPaused) {
         if (isPaused) {
             m_player->pause();
         }
@@ -789,10 +790,10 @@ void MainWindow::onPlayerStateReceived(const QString& roomId,
         }
     }
 
-    // Синхронизация позиции
-    m_player->seek(position);
-
-    m_syncing = false;
+    // Применяем позицию если расхождение > 500ms
+    if (qAbs(m_player->currentPosition() - position) > 500) {
+        m_player->seek(position);
+    }
 }
 
 /*void MainWindow::handleVideoUrlReceived(const QUrl& url) {

@@ -35,19 +35,16 @@
     <ClCompile Include="NotificationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Player.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RoomData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SettingsManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SyncHandler.cpp">
+    <ClCompile Include="VideoRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VideoRenderer.cpp">
+    <ClCompile Include="Player.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,9 +65,6 @@
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="SettingsManager.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
-    <QtMoc Include="SyncHandler.h">
       <Filter>Header Files</Filter>
     </QtMoc>
     <QtMoc Include="VideoRenderer.h">
