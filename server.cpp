@@ -225,20 +225,16 @@ class Server {
     }
 
     void broadcastParticipantsUpdate(Room& room) {
-        vector<pair<string, string>> usersInfo;
+        vector<string> nicks;
         {
             lock_guard<mutex> lock(room.roomMutex);
-            for (const auto& [sock, info] : room.users) {
-                usersInfo.push_back(info);
+            for (const auto& user : room.users) {
+                nicks.push_back(user.second.second); // Собираем ники
             }
         }
 
-        // УДАЛЕНО: сортировка по нику (причина проблемы #2)
-        // sort(usersInfo.begin(), usersInfo.end(), ...);
-
         string updateMsg = "PARTICIPANTS_UPDATE";
-        for (const auto& [ip, nick] : usersInfo) {
-            // Отправляем только один ник (исправление проблемы #1)
+        for (const string& nick : nicks) {
             updateMsg += "|" + nick;
         }
         updateMsg += "\n";
@@ -247,7 +243,6 @@ class Server {
             sendMessage(user.first, updateMsg);
         }
     }
-
 
     void handleClient(SOCKET clientSocket) {
         char buffer[1024];
@@ -344,7 +339,6 @@ class Server {
                                 string videoUrl = "VIDEO_URL|http://localhost:8000/" + films[filmIndex - 1].path + "\n";
                                 sendMessage(clientSocket, "ROOM_CREATED|" + roomName + "\n");
                                 sendMessage(clientSocket, videoUrl);
-                                sendMessage(clientSocket, "TEMPORARY_PROFILE|" + nick + "\n");
                                 broadcastParticipantsUpdate(newRoom);
                                 cout << clientIP << " создал комнату " << roomName
                                     << " с фильмом " << films[filmIndex - 1].title
@@ -388,8 +382,6 @@ class Server {
 
                             string videoUrl = "VIDEO_URL|http://localhost:8000/" + it->second.filmPath + "\n";
                             sendMessage(clientSocket, videoUrl);
-
-                            sendMessage(clientSocket, "TEMPORARY_PROFILE|" + nick + "\n");
 
                             broadcastParticipantsUpdate(*currentRoom);
                             cout << clientIP << " присоединился к " << roomName
@@ -437,21 +429,6 @@ class Server {
                     videoFile.close();
                 }
             }
-            else if (cmd == "REACTION") {
-                if (parts.size() < 3) continue;
-
-                // Исправлено: правильные индексы
-                string roomId = parts[1];
-                string reaction = parts[2];
-
-                if (currentRoom && currentRoom->name == roomId) {
-                    // Рассылаем реакцию всем участникам комнаты
-                    string msg = "REACTION|" + clientNick + "|" + reaction + "\n";
-                    for (const auto& user : currentRoom->users) {
-                        sendMessage(user.first, msg);
-                    }
-                }
-             }
             else if (currentState == ClientState::InRoom) {
                 if (command == "LEAVE_ROOM") {
                     string roomName = currentRoom->name;
