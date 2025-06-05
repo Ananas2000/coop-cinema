@@ -5,7 +5,7 @@
 #include <QSplitter>
 #include <QPixmap>
 #include <QIcon>
-#include <QListWidgetItem> // Добавлен заголовок для QListWidgetItem
+#include <QListWidgetItem> // ???????? ????????? ??? QListWidgetItem
 #include "Client.h"
 #include "VideoRenderer.h"
 #include "Player.h"
@@ -14,7 +14,7 @@
 QT_BEGIN_NAMESPACE
 class QVideoWidget;
 class QListWidget;
-class QListWidgetItem; // Добавлено предварительное объявление
+class QListWidgetItem; // ????????? ??????????????? ??????????
 class QPushButton;
 class QSlider;
 class QLabel;
@@ -46,6 +46,7 @@ private slots:
     void handleVideoUrlReceived(const QUrl& url);
     void filterMovies(const QString& text);
     void onMovieDoubleClicked(QListWidgetItem* item);
+    void copyRoomId();
 
     void updatePlayerControls(bool isPlaying);
     void updateConnectionStatus(bool connected);
@@ -88,12 +89,15 @@ private:
     QSlider* m_volumeSlider;
     QSlider* m_positionSlider;
     QLabel* m_durationLabel;
+    QLabel* m_volLabel;
+    QLabel* m_speedLabel;
     QComboBox* m_speedCombo;
     QLabel* m_positionLabel;
     QLabel* m_statusLabel;
     QLabel* m_roomIdLabel;
     QPushButton* m_leaveRoomBtn;
     QString formatTime(qint64 ms) const;
+    bool eventFilter(QObject* watched, QEvent* event) override;
 
     QIcon m_playIcon;
     QIcon m_pauseIcon;
