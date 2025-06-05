@@ -3,86 +3,189 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+#include <queue>
 #include <random>
 #include <thread>
 #include <mutex>
 #include <atomic>
 #include <cstdlib>
+#include <utility>
+#include <fstream>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <json/json.h>
+
+using namespace std;
 
 #pragma comment(lib, "ws2_32.lib")
+#pragma comment(lib, "jsoncpp.lib")
+
+const vector<string> DEFAULT_NICKS = {
+    "Tralalelo Tralala", "Tung Tung Tung Tung Sahur", "Bombardiro Crocodilo",
+    "Udindindindun Madindindindun", "Shpioniro Golubiro", "Cappuccina Ballerina",
+    "Glorbo Fruttodrilo", "Cappuccino Assassino", "Shimpanzini Bananini", "Bobrito Bandito"
+};
+
+struct Film {
+    string title;
+    string director;
+    string path;
+};
 
 class Room {
 public:
-    std::string name;
-    std::unordered_set<std::string> users;
-    std::mutex roomMutex;
+    SOCKET creator;
+    string name;
+    string filmTitle;
+    string filmDirector;
+    string filmPath;
+    unordered_map<SOCKET, pair<string, string>> users;
+    queue<string> availableNicks;
+    mutable mutex roomMutex;
 
-    explicit Room(std::string name) : name(std::move(name)) {}
-
-    bool addUser(const std::string& user) {
-        std::lock_guard<std::mutex> lock(roomMutex);
-        return users.insert(user).second;
+    Room(string name, const Film & film, SOCKET creatorSocket)
+        : name(move(name)), filmTitle(film.title),
+        filmDirector(film.director), filmPath(film.path),
+        creator(creatorSocket)
+    {
+        for (const auto& nick : DEFAULT_NICKS) {
+            availableNicks.push(nick);
+        }
     }
 
-    bool removeUser(const std::string& user) {
-        std::lock_guard<std::mutex> lock(roomMutex);
-        return users.erase(user) > 0;
+    pair<bool, string> addUser(SOCKET socket, const string& ip) {
+        lock_guard<mutex> lock(roomMutex);
+        if (users.size() >= 10) return { false, "" };
+        if (availableNicks.empty()) return { false, "" };
+
+        string nick = availableNicks.front();
+        availableNicks.pop();
+        users[socket] = { ip, nick };
+        return { true, nick };
     }
 
-    std::vector<std::string> getUsers() {
-        std::lock_guard<std::mutex> lock(roomMutex);
-        return { users.begin(), users.end() };
+    pair<bool, bool> removeUser(SOCKET socket) {
+        lock_guard<mutex> lock(roomMutex);
+        auto it = users.find(socket);
+        if (it == users.end()) return { false, false };
+
+        availableNicks.push(it->second.second);
+        users.erase(it);
+        return { true, users.empty() };
+    }
+
+    vector<pair<string, string>> getUsersInfo() const {
+        lock_guard<mutex> lock(roomMutex);
+        vector<pair<string, string>> result;
+        for (const auto& [sock, info] : users) {
+            result.push_back(info);
+        }
+        return result;
+    }
+
+    size_t userCount() const {
+        lock_guard<mutex> lock(roomMutex);
+        return users.size();
     }
 };
 
 class Server {
     WSADATA wsaData;
     SOCKET serverSocket = INVALID_SOCKET;
-    std::atomic<bool> isRunning{ false };
+    atomic<bool> isRunning{ false };
 
-    std::unordered_map<std::string, Room> rooms;
-    std::unordered_set<std::string> connectedUsers;
-    std::unordered_map<std::string, std::string> userRooms;
-    std::mutex roomsMutex;
-    std::mutex usersMutex;
-    std::mutex userRoomsMutex;
+    unordered_map<string, Room> rooms;
+    unordered_map<SOCKET, string> socketToRoom;
+    unordered_map<SOCKET, string> connectedClients;
+    vector<Film> films;
+
+    mutable mutex roomsMutex;
+    mutable mutex clientsMutex;
+
+    string getClientIP(SOCKET socket) {
+        sockaddr_in addr;
+        int addrSize = sizeof(addr);
+        getpeername(socket, (sockaddr*)&addr, &addrSize);
+        char ip[INET_ADDRSTRLEN];
+        inet_ntop(AF_INET, &addr.sin_addr, ip, INET_ADDRSTRLEN);
+        return ip;
+    }
+
+    void loadFilms() {
+        ifstream filmsFile("films.json");
+        if (!filmsFile.is_open()) {
+            throw runtime_error("Не удалось открыть films.json");
+        }
+
+        Json::Value root;
+        Json::CharReaderBuilder reader;
+        string errs;
+        if (!Json::parseFromStream(reader, filmsFile, &root, &errs)) {
+            throw runtime_error("Ошибка парсинга JSON: " + errs);
+        }
+
+        for (const auto& filmJson : root["films"]) {
+            Film film{
+                filmJson["title"].asString(),
+                filmJson["director"].asString(),
+                filmJson["path"].asString()
+            };
+            films.push_back(film);
+        }
+
+        if (films.empty()) {
+            throw runtime_error("Нет фильмов в films.json");
+        }
+    }
 
     void printHelp() {
-        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n"
-            << "list   - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n"
-            << "users  - пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n"
-            << "help   - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n"
-            << "exit   - пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n";
+        cout << "Серверные команды:\n"
+            << "list   - Список комнат\n"
+            << "users  - Список пользователей\n"
+            << "help   - Показать помощь\n"
+            << "exit   - Завершить работу\n";
     }
 
     void handleConsoleInput() {
-        std::string command;
+        string command;
         while (isRunning) {
             system("cls");
-            std::cout << "=== пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ ===\n";
+            cout << "=== СЕРВЕР КИНОТЕАТРА ===\n";
             printHelp();
 
-            std::cout << "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: ";
-            std::getline(std::cin, command);
+            cout << "\nВведите команду: ";
+            getline(cin, command);
 
             system("cls");
 
             if (command == "list") {
-                std::lock_guard<std::mutex> lock(roomsMutex);
-                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ (" << rooms.size() << "):\n";
+                lock_guard<mutex> lock(roomsMutex);
+                cout << "Активные комнаты (" << rooms.size() << "):\n";
                 for (const auto& [name, room] : rooms) {
-                    std::cout << "- " << name << " (" << room.users.size() << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ)\n";
+                    cout << "- " << name << " (" << room.userCount() << "/10) - "
+                        << room.filmTitle << " (" << room.filmDirector << ")\n";
                 }
             }
             else if (command == "users") {
-                std::lock_guard<std::mutex> lockUsers(usersMutex);
-                std::lock_guard<std::mutex> lockRooms(userRoomsMutex);
-                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (" << connectedUsers.size() << "):\n";
-                for (const auto& user : connectedUsers) {
-                    auto it = userRooms.find(user);
-                    std::cout << "- " << user << (it != userRooms.end() ? " : пїЅпїЅпїЅпїЅпїЅпїЅпїЅ " + it->second : " : пїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ") << "\n";
+                lock_guard<mutex> lock(clientsMutex);
+                cout << "Подключенные пользователи (" << connectedClients.size() << "):\n";
+
+                lock_guard<mutex> roomLock(roomsMutex);
+                for (const auto& [socket, ip] : connectedClients) {
+                    auto roomIt = socketToRoom.find(socket);
+                    if (roomIt != socketToRoom.end()) {
+                        const Room& room = rooms.at(roomIt->second);
+                        lock_guard<mutex> roomLock(room.roomMutex);
+                        auto userIt = room.users.find(socket);
+                        if (userIt != room.users.end()) {
+                            const auto& [userIp, nick] = userIt->second;
+                            cout << "- " << userIp << " : " << roomIt->second
+                                << " <" << nick << ">\n";
+                        }
+                    }
+                    else {
+                        cout << "- " << ip << " : Не в комнате\n";
+                    }
                 }
             }
             else if (command == "help") {
@@ -90,25 +193,26 @@ class Server {
             }
             else if (command == "exit") {
                 isRunning = false;
-                std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ...\n";
+                cout << "Завершение работы сервера...\n";
+                closesocket(serverSocket);
                 break;
             }
 
             if (command != "exit") {
-                std::cout << "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Enter пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ...";
-                std::cin.ignore();
+                cout << "\nНажмите Enter для продолжения...";
+                cin.ignore();
             }
         }
     }
 
-    std::string generateRoomName() {
+    string generateRoomName() {
         static const char chars[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, 35);
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> dist(0, 35);
 
-        std::lock_guard<std::mutex> lock(roomsMutex);
-        std::string name;
+        lock_guard<mutex> lock(roomsMutex);
+        string name;
         do {
             name.clear();
             for (int i = 0; i < 6; ++i) name += chars[dist(gen)];
@@ -116,146 +220,288 @@ class Server {
         return name;
     }
 
-    void sendMessage(SOCKET socket, const std::string& message) {
+    void sendMessage(SOCKET socket, const string& message) {
         send(socket, message.c_str(), static_cast<int>(message.size()), 0);
+    }
+
+    void broadcastParticipantsUpdate(Room& room) {
+        vector<string> nicks;
+        {
+            lock_guard<mutex> lock(room.roomMutex);
+            for (const auto& user : room.users) {
+                nicks.push_back(user.second.second); // Собираем ники
+            }
+        }
+
+        string updateMsg = "PARTICIPANTS_UPDATE";
+        for (const string& nick : nicks) {
+            updateMsg += "|" + nick;
+        }
+        updateMsg += "\n";
+
+        for (const auto& user : room.users) {
+            sendMessage(user.first, updateMsg);
+        }
     }
 
     void handleClient(SOCKET clientSocket) {
         char buffer[1024];
-        std::string username;
-        Room* currentRoom = nullptr;
+        string clientIP = getClientIP(clientSocket);
 
-        while (true) {
-            sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ: ");
-            int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
-            if (bytesReceived <= 0) {
-                closesocket(clientSocket);
-                return;
-            }
-
-            std::string name(buffer, static_cast<size_t>(bytesReceived));
-            std::lock_guard<std::mutex> lock(usersMutex);
-            if (!connectedUsers.count(name)) {
-                connectedUsers.insert(name);
-                username = name;
-                break;
-            }
-            sendMessage(clientSocket, "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ! пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ: ");
+        {
+            lock_guard<mutex> lock(clientsMutex);
+            connectedClients[clientSocket] = clientIP;
         }
 
-        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " << username << std::endl;
+        Room* currentRoom = nullptr;
+        string clientNick;
+        enum class ClientState { MainMenu, ChoosingFilm, InRoom };
+        ClientState currentState = ClientState::MainMenu;
+        Film* selectedFilm = nullptr;
+
+        cout << "Подключился: " << clientIP << endl;
 
         while (isRunning) {
-            std::string menu = currentRoom ?
-                "\nпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n2. пїЅпїЅпїЅпїЅ\n3. пїЅпїЅпїЅпїЅпїЅ\n4. пїЅпїЅпїЅпїЅпїЅ\nпїЅпїЅпїЅпїЅпїЅ: " :
-                "\nпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ:\n1. пїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n2. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n3. пїЅпїЅпїЅпїЅпїЅпїЅ\n4. пїЅпїЅпїЅпїЅпїЅ\nпїЅпїЅпїЅпїЅпїЅ: ";
-
-            sendMessage(clientSocket, menu);
-
             memset(buffer, 0, sizeof(buffer));
             int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
             if (bytesReceived <= 0) break;
 
-            std::string command(buffer, static_cast<size_t>(bytesReceived));
+            string command(buffer, static_cast<size_t>(bytesReceived));
 
-            if (command == "1") {
-                if (!currentRoom) {
-                    std::string roomName = generateRoomName();
-                    {
-                        std::lock_guard<std::mutex> lock(roomsMutex);
-                        rooms.emplace(
-                            std::piecewise_construct,
-                            std::forward_as_tuple(roomName),
-                            std::forward_as_tuple(roomName)
-                        );
-                        rooms.at(roomName).addUser(username);
-                        std::lock_guard<std::mutex> lockUR(userRoomsMutex);
-                        userRooms[username] = roomName;
+            command.erase(std::remove(command.begin(), command.end(), '\n'), command.end());
+            command.erase(std::remove(command.begin(), command.end(), '\r'), command.end());
+
+            // Разбиваем команду на части
+            std::vector<std::string> parts;
+            size_t start = 0;
+            size_t end = command.find('|');
+            while (end != std::string::npos) {
+                parts.push_back(command.substr(start, end - start));
+                start = end + 1;
+                end = command.find('|', start);
+            }
+            parts.push_back(command.substr(start));
+
+            if (parts.empty()) continue;
+
+            const std::string& cmd = parts[0];
+
+            if (cmd == "PLAYER_STATE") {
+                if (parts.size() < 4) continue;
+
+                string roomId = parts[1]; // Индекс 1 вместо 0
+                string isPausedStr = parts[2];
+                string positionStr = parts[3];
+
+                if (currentRoom && currentRoom->name == roomId) {
+                    string msg = "PLAYER_STATE|" + roomId + "|" +
+                        clientNick + "|" + isPausedStr + "|" +
+                        positionStr + "\n";
+
+                    // Рассылаем ВСЕМ участникам комнаты включая отправителя
+                    for (const auto& user : currentRoom->users) {
+                        sendMessage(user.first, msg);
                     }
-                    currentRoom = &rooms.at(roomName);
-                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + roomName + "\n");
-                    std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << roomName << std::endl;
-                }
-                else {
-                    auto members = currentRoom->getUsers();
-                    std::string msg = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n";
-                    for (const auto& m : members) msg += m + "\n";
-                    sendMessage(clientSocket, msg);
                 }
             }
-            else if (command == "2") {
-                if (!currentRoom) {
-                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: ");
+            else if (currentState == ClientState::MainMenu) {
+                if (command == "CREATE_ROOM") {
+                    /*
+                    // Отправляем список фильмов
+                    string filmsList = "FILMS_LIST";
+                    for (const auto& film : films) {
+                        filmsList += "|" + film.title + "|" + film.director;
+                    }
+                    sendMessage(clientSocket, filmsList + "\n");
+                    */
+                    int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+                    if (bytesReceived <= 0) break;
+                    int filmIndex = std::stoi(string(buffer, bytesReceived));
+
+                    string roomName = generateRoomName();
+                    {
+                        lock_guard<mutex> lock(roomsMutex);
+                        auto it = rooms.emplace(
+                            piecewise_construct,
+                            forward_as_tuple(roomName),
+                            forward_as_tuple(roomName, films[filmIndex - 1], clientSocket) 
+                        );
+
+                        if (it.second) {
+                            Room& newRoom = it.first->second;
+                            auto [success, nick] = newRoom.addUser(clientSocket, clientIP);
+                            if (success) {
+                                clientNick = nick;
+                                socketToRoom[clientSocket] = roomName;
+                                currentRoom = &newRoom;
+                                currentState = ClientState::InRoom;
+
+                                string videoUrl = "VIDEO_URL|http://localhost:8000/" + films[filmIndex - 1].path + "\n";
+                                sendMessage(clientSocket, "ROOM_CREATED|" + roomName + "\n");
+                                sendMessage(clientSocket, videoUrl);
+                                broadcastParticipantsUpdate(newRoom);
+                                cout << clientIP << " создал комнату " << roomName
+                                    << " с фильмом " << films[filmIndex - 1].title
+                                    << " как " << clientNick << endl;
+                            }
+                            else {
+                                rooms.erase(roomName);
+                                sendMessage(clientSocket, "Ошибка при создании комнаты!\n");
+                            }
+                        }
+                        else {
+                            sendMessage(clientSocket, "Ошибка при создании комнаты!\n");
+                        }
+                    }
+                }
+                else if (command == "GET_FILMS") {
+                    string response = "FILMS_LIST";
+                    sendMessage(clientSocket, response + "\n");
+                    for (const auto& film : films) {
+                        response += "|" + film.title + "|" + film.director;
+                    }
+                    sendMessage(clientSocket, response + "\n");
+                    continue;
+                }
+                else if (command == "JOIN_ROOM") {
                     bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
                     if (bytesReceived <= 0) break;
 
-                    std::string roomName(buffer, static_cast<size_t>(bytesReceived));
-                    std::lock_guard<std::mutex> lock(roomsMutex);
+                    string roomName(buffer, static_cast<size_t>(bytesReceived));
+                    lock_guard<mutex> lock(roomsMutex);
                     auto it = rooms.find(roomName);
-                    if (it != rooms.end() && it->second.addUser(username)) {
-                        currentRoom = &it->second;
-                        {
-                            std::lock_guard<std::mutex> lockUR(userRoomsMutex);
-                            userRooms[username] = roomName;
+                    if (it != rooms.end()) {
+                        auto [success, nick] = it->second.addUser(clientSocket, clientIP);
+                        if (success) {
+                            clientNick = nick;
+                            currentRoom = &it->second;
+                            socketToRoom[clientSocket] = roomName;
+                            
+                            string roomJoinedMsg = "ROOM_ENTERED|" + roomName + "\n";
+                            sendMessage(clientSocket, roomJoinedMsg);
+
+                            string videoUrl = "VIDEO_URL|http://localhost:8000/" + it->second.filmPath + "\n";
+                            sendMessage(clientSocket, videoUrl);
+
+                            broadcastParticipantsUpdate(*currentRoom);
+                            cout << clientIP << " присоединился к " << roomName
+                                << " как " << clientNick << endl;
+                            currentState = ClientState::InRoom;
                         }
-                        sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ: " + roomName + "\n");
-                        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ " << roomName << std::endl;
+                        else {
+                            sendMessage(clientSocket, "Комната заполнена!\n");
+                        }
                     }
                     else {
-                        sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
+                        sendMessage(clientSocket, "Комната не найдена!\n");
                     }
                 }
-                else {
-                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " + currentRoom->name + "\n");
-                }
-            }
-            else if (command == "3") {
-                if (!currentRoom) {
-                    std::lock_guard<std::mutex> lock(roomsMutex);
-                    std::string list = "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ:\n";
-                    for (const auto& pair : rooms)
-                        list += "- " + pair.first + " (" + std::to_string(pair.second.users.size()) + ")\n";
-                    sendMessage(clientSocket, list.empty() ? "пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ\n" : list);
-                }
-                else {
-                    currentRoom->removeUser(username);
+                else if (command == "GET_VIDEO") {
+                    if (!currentRoom) {
+                        sendMessage(clientSocket, "Вы не в комнате\n");
+                        continue;
+                    }
+
+                    string videoPath;
                     {
-                        std::lock_guard<std::mutex> lockUR(userRoomsMutex);
-                        userRooms.erase(username);
+                        lock_guard<mutex> lock(roomsMutex);
+                        videoPath = "videos/" + currentRoom->filmTitle + ".mp4";
                     }
-                    sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ: " + currentRoom->name + "\n");
-                    currentRoom = nullptr;
-                    std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ " << username << " пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n";
+
+                    ifstream videoFile(videoPath, ios::binary);
+                    if (!videoFile.is_open()) {
+                        sendMessage(clientSocket, "Ошибка: Видео не найдено\n");
+                        continue;
+                    }
+
+                    sendMessage(clientSocket, "START_VIDEO\n");
+
+                    char buffer[4096];
+                    while (videoFile.read(buffer, sizeof(buffer))) {
+                        send(clientSocket, buffer, sizeof(buffer), 0);
+                    }
+
+                    if (videoFile.gcount() > 0) {
+                        send(clientSocket, buffer, static_cast<int>(videoFile.gcount()), 0);
+                    }
+
+                    sendMessage(clientSocket, "END_VIDEO\n");
+                    videoFile.close();
                 }
             }
-            else if (command == "4") {
-                sendMessage(clientSocket, "пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
-                break;
+            else if (currentState == ClientState::InRoom) {
+                if (command == "LEAVE_ROOM") {
+                    string roomName = currentRoom->name;
+                    auto [removed, nowEmpty] = currentRoom->removeUser(clientSocket);
+                    if (removed) {
+                        socketToRoom.erase(clientSocket);
+                        clientNick.clear();
+
+                        // Сообщение в консоль о ручном выходе
+                        cout << "[" << clientIP << "] Покинул комнату: " << roomName << endl;
+
+                        // Отправка подтверждения клиенту
+                        sendMessage(clientSocket, "LEFT_ROOM|" + roomName + "\n");
+
+                        if (!nowEmpty) {
+                            broadcastParticipantsUpdate(*currentRoom);
+                        }
+
+                        if (nowEmpty) {
+                            rooms.erase(roomName);
+                            cout << "Комната удалена (пуста): " << roomName << endl;
+                        }
+                    }
+                    currentRoom = nullptr;
+                    currentState = ClientState::MainMenu;
+                }
             }
-            else sendMessage(clientSocket, "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ!\n");
         }
 
         if (currentRoom) {
-            currentRoom->removeUser(username);
-            std::lock_guard<std::mutex> lockUR(userRoomsMutex);
-            userRooms.erase(username);
+            string roomName = currentRoom->name;
+            auto [removed, nowEmpty] = currentRoom->removeUser(clientSocket);
+            if (removed) {
+                socketToRoom.erase(clientSocket);
+
+                // Выводим сообщение о разрыве соединения
+                cout << "[" << clientIP << "] Разрыв соединения. Покинул комнату: " << roomName << endl;
+
+                if (!nowEmpty) {
+                    // Обновляем список участников для оставшихся пользователей
+                    broadcastParticipantsUpdate(*currentRoom);
+                }
+                else {
+                    // Удаляем пустую комнату
+                    lock_guard<mutex> lock(roomsMutex);
+                    rooms.erase(roomName);
+                    cout << "Комната удалена (пуста): " << roomName << endl;
+                }
+            }
         }
+        else {
+            // Если пользователь не был в комнате
+            cout << "Отключился: " << clientIP << endl;
+        }
+
         {
-            std::lock_guard<std::mutex> lock(usersMutex);
-            connectedUsers.erase(username);
+            lock_guard<mutex> lock(clientsMutex);
+            connectedClients.erase(clientSocket);
         }
+
         closesocket(clientSocket);
-        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " << username << std::endl;
+
+        cout << "Отключился: " << clientIP << endl;
     }
 
 public:
     Server() {
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Winsock");
+            throw runtime_error("Ошибка инициализации Winsock");
 
         serverSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
         if (serverSocket == INVALID_SOCKET)
-            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ");
+            throw runtime_error("Ошибка создания сокета");
 
         sockaddr_in serverAddr{};
         serverAddr.sin_family = AF_INET;
@@ -263,19 +509,20 @@ public:
         serverAddr.sin_port = htons(8888);
 
         if (bind(serverSocket, (sockaddr*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR)
-            throw std::runtime_error("пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ");
+            throw runtime_error("Ошибка привязки");
 
         listen(serverSocket, SOMAXCONN);
         isRunning = true;
-        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ 8888\n";
+        loadFilms();
+        cout << "Сервер запущен на порту 8888\n";
     }
 
     void start() {
-        std::thread consoleThread(&Server::handleConsoleInput, this);
+        thread consoleThread(&Server::handleConsoleInput, this);
         while (isRunning) {
             SOCKET clientSocket = accept(serverSocket, nullptr, nullptr);
             if (clientSocket == INVALID_SOCKET) continue;
-            std::thread(&Server::handleClient, this, clientSocket).detach();
+            thread(&Server::handleClient, this, clientSocket).detach();
         }
         consoleThread.join();
     }
@@ -284,23 +531,19 @@ public:
         isRunning = false;
         closesocket(serverSocket);
         WSACleanup();
-        std::cout << "пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ\n";
+        cout << "Сервер остановлен\n";
     }
 };
 
 int main() {
     setlocale(LC_ALL, "Russian");
-
-    
     try {
         Server server;
         server.start();
     }
-    catch (const std::exception& e) {
-        std::cerr << "пїЅпїЅпїЅпїЅпїЅпїЅ: " << e.what() << std::endl;
+    catch (const exception& e) {
+        cerr << "ОШИБКА: " << e.what() << endl;
         return 1;
     }
-
-
     return 0;
 }
