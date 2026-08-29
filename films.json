@@ -1,0 +1,19 @@
+{
+    "films": [
+        {
+            "title": "Flashed Cat",
+            "director": "Tarantino",
+            "path": "flash.mp4"
+        },
+        {
+            "title": "Boomed Cat",
+            "director": "Guy Ritchie",
+            "path": "boom.mp4"
+        },
+        {
+            "title": "Backrooms",
+            "director": "Recording",
+            "path": "backrooms.mp4"
+        }
+    ]
+}
